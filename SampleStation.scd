@@ -2,18 +2,10 @@
 Loop/Copy/Mutate project Genetic Choir
 Sample Station
 
-synthDef in this file
-
-twee param modes:
-1. startPos & length
-2. pitch & tremolospeed / tremolo in language zodat ie al in GUI runt voordat sample gestart is
-
 GUI:
-1. left/right front buttons links en rechtsboven
-2. hatswitch en kleurbuttons letterlijk in de interface
-3. startPos / len als rangeslider met waveform display
+3. startPos / len als bufferview: issue met loslaten right front button, dan verspringt de size soms naar groot
 4. pitch als verticale slider?
-5. tremolo als bewegende horizontale slider die volume aangeeft
+5. tremolo als bewegende horizontale slider die volume aangeeft, tremolo in language zodat ie al in GUI runt voordat sample gestart is
 
 Optie: eigen sample opnemen?? Dan:
 1. play synth aanpassen, mono/stereo versie
@@ -35,7 +27,7 @@ s.waitForBoot {
 	var wDummy, wSamStat;
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
 
-	tiltSample = ["ME04_wrowrowmelody.wav", "TE07_Swieuwsiew.wav", nil, nil];
+	tiltSample = ["ME04_wrowrowmelody.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", nil];
 	paramMode = [\startLen,\tremPitch,\startLen,\tremPitch];
 
 	// --- SynthDefs ------------------------------------------------------------------------------------------------
@@ -54,13 +46,13 @@ s.waitForBoot {
 	// --- GUI ------------------------------------------------------------------------------------------------
 
 	wDummy = Window().front.close;
-	wSamStat = Window("Sample Station", Rect(0,0,screenWidth,screenHeight)).background_(Color.white);
+	wSamStat = Window("Sample Station", Rect(0,0,screenWidth,screenHeight)).background_(Color.black);
 
 	tiltDevice.size.do { |index|
 		if(tiltDevice[index].notNil, {
 			// define action for device
 			tiltDevice[index].action = { | value, physValue, rawValue,  arrayValue, usage, page, elid |
-				localAddr.sendMsg("/hid/tiltpad"++index, elid, value);
+				localAddr.sendMsg("/hid/tiltpad"++index, elid, value, physValue);
 			};
 			// startup TiltPad instance for device
 			tiltPad[index] = TiltPad.new(index, s, Document.current.dir ++ "/Data/" ++ tiltSample[index], paramMode[index], wSamStat, debug);

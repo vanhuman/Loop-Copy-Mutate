@@ -27,6 +27,7 @@ s.waitForBoot {
 
 	// --- Variables ------------------------------------------------------------------------------------------------
 
+	var debug = false;
 	var localAddr = NetAddr("127.0.0.1", 57120);
 	var sRate = s.sampleRate;
 	var tiltDevice = Array.newClear(4), tiltPad = Array.newClear(4), tiltSample = Array.newClear(4);
@@ -38,23 +39,7 @@ s.waitForBoot {
 	paramMode = [\startLen,\tremPitch,\startLen,\tremPitch];
 
 	// --- SynthDefs ------------------------------------------------------------------------------------------------
-
-	2.do { |i|
-		SynthDef(\playstartLen++i, { arg gate = 1, buf, len = 2, direction = 1, start = 0;
-			var sig, env, trig;
-			trig = Impulse.kr(1 / len);
-			env = EnvGen.kr(Env.adsr(0.01,0,1,0.1), gate, doneAction: 2);
-			sig = PlayBufCF.ar(i+1, buf, direction, trig, start * sRate, 1);
-			Out.ar(0, sig * env);
-		}).add;
-		SynthDef(\playtremPitch++i, { arg gate = 1, buf, pitch = 1, direction = 1, tremSpeed = 1;
-			var sig, env, tremolo;
-			env = EnvGen.kr(Env.adsr(0.01,0,1,0.1), gate, doneAction: 2);
-			tremolo = SinOsc.kr(tremSpeed).range(0,1);
-			sig = PlayBufCF.ar(i+1, buf, pitch * direction, 1, 0, 1);
-			Out.ar(0, sig * env * tremolo);
-		}).add;
-	};
+	TiltPad.loadSynthDefs(s.sampleRate);
 
 	// --- HID ------------------------------------------------------------------------------------------------
 
@@ -78,7 +63,7 @@ s.waitForBoot {
 				localAddr.sendMsg("/hid/tiltpad"++index, elid, value);
 			};
 			// startup TiltPad instance for device
-			tiltPad[index] = TiltPad.new(index, s, Document.current.dir ++ "/Data/" ++ tiltSample[index], paramMode[index], wSamStat);
+			tiltPad[index] = TiltPad.new(index, s, Document.current.dir ++ "/Data/" ++ tiltSample[index], paramMode[index], wSamStat, debug);
 		});
 	};
 

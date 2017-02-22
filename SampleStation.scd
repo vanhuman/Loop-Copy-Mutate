@@ -3,7 +3,6 @@ Loop/Copy/Mutate project Genetic Choir
 Sample Station
 
 GUI:
-3. startPos / len als bufferview: issue met loslaten right front button, dan verspringt de size soms naar groot
 4. pitch als verticale slider?
 5. tremolo als bewegende horizontale slider die volume aangeeft, tremolo in language zodat ie al in GUI runt voordat sample gestart is
 
@@ -28,10 +27,7 @@ s.waitForBoot {
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
 
 	tiltSample = ["ME04_wrowrowmelody.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", nil];
-	paramMode = [\startLen,\tremPitch,\startLen,\tremPitch];
-
-	// --- SynthDefs ------------------------------------------------------------------------------------------------
-	TiltPad.loadSynthDefs(s.sampleRate);
+	paramMode = [\startLen,\tremPitch,\tremPitch, \startLen];
 
 	// --- HID ------------------------------------------------------------------------------------------------
 

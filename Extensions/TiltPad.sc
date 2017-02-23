@@ -5,15 +5,15 @@ To trigger and control samples from a Gravis Destroyer Tiltpad
 */
 
 TiltPad {
-	var id, server, path, paramMode, win, debug; // arguments
+	var id, server, path, paramMode, win, map, debug; // arguments
 	var buffer, soundFileShort, soundFile, soundFileFound, numChans, numFrames, sRate;
-	var name = "TiltPad", playSynth, tremSynth, spec, startPos, leftShift = 0, rightShift = 0, colorOffset = 0.3;
+	var name = "TiltPad", playSynth, tremSynth, spec, startPos, leftShift = 0, rightShift = 0, colorOffset = 0.3, tremoloName;
 	var pitchBus, lenBus, startPos, tremBus, volBus;
 	var button, slider, bufferView;
 
 	*new {
-		arg id = 0, server, path, paramMode = \startLen, win, debug = false;
-		^super.newCopyArgs(id, server, path, paramMode, win, debug).initTiltPad;
+		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false;
+		^super.newCopyArgs(id, server, path, paramMode, win, map, debug).initTiltPad;
 	}
 
 	initTiltPad {
@@ -22,14 +22,15 @@ TiltPad {
 		this.loadSynthDefs();
 		server.sync;
 		this.initOSC();
-		this.startTremSynth();
 		this.buildGUI();
+		this.tremSynth();
 	}
 
 	initVars {
 		// init variables
 		sRate = server.sampleRate;
 		name = name ++ "-" ++ id;
+		tremoloName = "tremolo"++id;
 		playSynth = Array.newClear(2);
 		pitchBus = Bus.control(server,1).set(1);
 		tremBus = Bus.control(server,1).set(0.2);
@@ -41,6 +42,7 @@ TiltPad {
 		);
 		button = ();
 		slider = ();
+		map.postcs;
 	}
 
 	initBuffer {
@@ -74,7 +76,7 @@ TiltPad {
 
 	loadSynthDefs {
 		[1,2].do { |numChans|
-			SynthDef(\playStartLen++id++numChans, { arg gate = 1, buf, direction = 1, lenBus, start = 0, volBus;
+			SynthDef(\playStartLen++"_"++id++"_"++numChans, { arg gate = 1, buf, direction = 1, lenBus, start = 0, volBus;
 				var sig, env, trig, lenVal, volVal;
 				lenVal = In.kr(lenBus,1);
 				volVal = In.kr(volBus,1);
@@ -84,7 +86,7 @@ TiltPad {
 				if(numChans == 1, { sig = sig.dup(2) });
 				Out.ar(0, sig * env * volVal);
 			}).add;
-			SynthDef(\playTremPitch++id++numChans, { arg gate = 1, buf, direction = 1, pitchBus, tremBus, volBus;
+			SynthDef(\playTremPitch++"_"++id++"_"++numChans, { arg gate = 1, buf, direction = 1, pitchBus, tremBus, volBus;
 				var sig, env, tremolo, pitchVal, tremVal, volVal, tremLagged;
 				pitchVal = In.kr(pitchBus,1);
 				tremVal = In.kr(tremBus,1);
@@ -108,25 +110,26 @@ TiltPad {
 	}
 
 	initOSC {
-		var elid, value, physValue;
 		// OSCdef that catches all tiltpad OSC
+		// ("(OSCdefs before:"+AbstractResponderFunc.allFuncProxies).postcs;
 		OSCdef(name, { arg msg;
+			var elid, value, physValue;
 			// msg.postln;
 			elid = msg[1];
 			value = msg[2];
 			physValue = msg[3];
 			case
-			{ elid == 3 } // yellow button
+			{ elid == map[\yellow] } // yellow button
 			{
 				this.playBuffer(0,value);
 				button[\yellow].value = value;
 			}
-			{ elid == 4 } // green button
+			{ elid == map[\green] } // green button
 			{
 				this.playBuffer(1,value);
 				button[\green].value = value;
 			}
-			{ elid == 6 } // left button
+			{ elid == map[\left] } // left button
 			{
 				leftShift = value;
 				button[\left].value = value;
@@ -139,7 +142,7 @@ TiltPad {
 					);
 				});
 			}
-			{ elid == 7 } // right button
+			{ elid == map[\right] } // right button
 			{
 				rightShift = value;
 				button[\right].value = value;
@@ -152,16 +155,16 @@ TiltPad {
 					);
 				});
 			}
-			{ elid == 8 } // hatswitch
+			{ elid == map[\hat] } // hatswitch
 			{
 				case
-				{ physValue == 1 }
+				{ physValue.asInt == map[\hatUp] }
 				{ volBus.get { arg busVal; volBus.set(min(busVal + 0.1, 2)); } }
-				{ physValue == 5 }
+				{ physValue.asInt == map[\hatDown] }
 				{ volBus.get { arg busVal; volBus.set(max(busVal - 0.1, 0.1)); } }
 				;
 			}
-			{ elid == 0 and: { leftShift == 1 } } // X-axis
+			{ elid == map[\x] and: { leftShift == 1 } } // X-axis
 			{
 				case
 				{ paramMode == \startLen }
@@ -171,15 +174,15 @@ TiltPad {
 					2.do { arg playMode;
 						if(playSynth[playMode].notNil, {
 							if(debug, { ("set start:"+startPos).postln });
-							this.playBuffer(playMode, 0);
-							this.playBuffer(playMode, 1);
+							this.playBuffer(playMode, 0, \nilBypass);
+							this.playBuffer(playMode, 1, \nilBypass);
 						});
 					}
 				}
 				{ paramMode == \tremPitch } { tremBus.set(spec.trem.at(value)); if(debug, {("set trem:"+spec.trem.at(value)).postln});  }
 				;
 			}
-			{ elid == 1 and: { rightShift == 1 } } // Y-axis
+			{ elid == map[\y] and: { rightShift == 1 } } // Y-axis
 			{
 				case
 				{ paramMode == \startLen }
@@ -197,42 +200,53 @@ TiltPad {
 			;
 		}, "/hid/tiltpad"++id ).fix;
 		if(paramMode == \tremPitch, {
-			OSCdef(\tremolo++id, { arg msg;
+			OSCdef(tremoloName, { arg msg;
 				var dir = msg[2], val = msg[3];
 				case
 				{ playSynth[0].notNil } // then use SendReply from 'direction=1'
 				{ if(dir == 1, { slider[\tremolo].value_(val) }) }
 				{ playSynth[1].notNil } // then use SendReply from 'direction=-1'
 				{ if(dir == -1, { slider[\tremolo].value_(val) }) }
-				{ true }
+				{ true } // then use SendReply from 'direction=0' which is a special tremSynth
 				{ if(dir == 0, { slider[\tremolo].value_(val) }) }
 				;
-			}, '/tremolo'++id).fix;
+			}, '/tremolo'++id ).fix;
 		});
+		// ("(OSCdefs after:"+AbstractResponderFunc.allFuncProxies).postcs;
 	}
 
-	startTremSynth {
-		if(paramMode == \tremPitch, { tremSynth = Synth(\tremolo++id, [\tremBus, tremBus.index]) });
+	tremSynth {
+		if(paramMode == \tremPitch, {
+			if(tremSynth.isNil,
+				{ tremSynth = Synth(\tremolo++id, [\tremBus, tremBus.index]) },
+				{ tremSynth.free; tremSynth = nil }
+			);
+		});
 	}
 
 	playBuffer {
-		arg playMode, value;
-		if(value == 1 and: { playSynth[playMode].isNil }, {
-			case
-			{ paramMode == \startLen }
-			{
-				playSynth[playMode] = Synth(\playStartLen++id++numChans,
-					[\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ), \volBus, volBus.index, \lenBus, lenBus.index, \start, startPos])
-			}
-			{ paramMode == \tremPitch }
-			{
-				playSynth[playMode] = Synth(\playTremPitch++id++numChans,
-					[\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ), \volBus, volBus.index,\pitchBus, pitchBus.index, \tremBus, tremBus.index])
-			}
-			;
-		});
-		if(value == 0 and: { playSynth[playMode].notNil }, {
-			playSynth[playMode].release; playSynth[playMode] = nil;
+		arg playMode, value, tag;
+		if(value == 1, {
+			if(playSynth[playMode].isNil or: { tag == \nilBypass }, {
+				case
+				{ paramMode == \startLen }
+				{
+					playSynth[playMode] = Synth(\playStartLen++"_"++id++"_"++numChans,
+						[\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ), \volBus, volBus.index, \lenBus, lenBus.index, \start, startPos])
+				}
+				{ paramMode == \tremPitch }
+				{
+					playSynth[playMode] = Synth(\playTremPitch++"_"++id++"_"++numChans,
+						[\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ), \volBus, volBus.index,\pitchBus, pitchBus.index,
+							\tremBus, tremBus.index])
+				}
+				;
+			})
+		}, {
+			if(playSynth[playMode].notNil or: { tag == \nilBypass }, {
+				playSynth[playMode].release(0.01);
+				if(tag != \nilBypass, { playSynth[playMode] = nil });
+			});
 		});
 	}
 
@@ -244,11 +258,17 @@ TiltPad {
 
 		if(win.isNil, { // no window passed, create one
 			win = Window(name, Rect(left, top, width, height)).onClose_({ this.cleanUp() }).front;
+			win.keyDownAction = {
+				arg view, char, modifiers, unicode, keycode, key;
+				// keycode.postln;
+				switch (keycode,
+					17, { this.tremSynth() }
+				);
+			};
 			left = 0; top = 0;
 		});
 
 		view = View(win, Rect(left, top, width, height)).background_(Color.white);
-		// title = StaticText(view, Rect(110,height - 140,100,100)).string_(id).font_(Font(Font.default,120,true)).stringColor_(Color.grey);
 		title = StaticText(view, Rect(0,height - 30,width,20)).string_(name).align_(\center).background_(Color.grey(0.7));
 		button[\left] = (SmoothButton(view, Rect(10,height/2,100,80))
 			.border_(1).radius_(5).canFocus_(false).font_(Font(Font.default,30))
@@ -306,15 +326,13 @@ TiltPad {
 	}
 
 	cleanUp {
-		(name ++ ": Synth released.").postln;
+		tremSynth.free;
 		2.do { |playMode| if(playSynth[playMode].notNil, { playSynth[playMode].release }) };
-		if(paramMode == \tremPitch, { tremSynth.free });
+		(name ++ ": Synth released.").postln;
+		buffer.free; buffer = nil;
 		(name ++ ": buffer freed.").postln;
-		buffer.free;
-		buffer = nil;
-		(name ++ ": OSCdef freed.").postln;
-		OSCdef(name).free;
-		OSCdef(\tremolo++id).free;
+		OSCdef(name).free; OSCdef(tremoloName).free;
+		(name ++ ": OSCdefs freed.").postln;
 	}
 
 	printOn { arg stream;

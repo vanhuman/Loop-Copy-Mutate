@@ -21,23 +21,41 @@ s.waitForBoot {
 	var debug = false;
 	var localAddr = NetAddr("127.0.0.1", 57120);
 	var sRate = s.sampleRate;
-	var tiltDevice = Array.newClear(4), tiltPad = Array.newClear(4), tiltSample = Array.newClear(4);
-	var devCount = 0, paramMode;
+	var tiltDevice = Array.newClear(4), tiltPad = Array.newClear(4), tiltSample, tiltDeviceName, tiltDeviceNameTmp;
+	var devCount = 0, paramMode, deviceMap;
 	var wDummy, wSamStat;
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
 
-	tiltSample = ["ME04_wrowrowmelody.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", nil];
+	tiltDeviceName = ['Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'WingMan RumblePad'];
+	tiltDeviceNameTmp = tiltDeviceName.copyRange(0,3);
+	tiltSample = ["ME04_wrowrowmelody.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", "TI08_bbrr-bbrr.wav"];
 	paramMode = [\startLen,\tremPitch,\tremPitch, \startLen];
 
 	// --- HID ------------------------------------------------------------------------------------------------
 
+	deviceMap = (
+		'WingMan RumblePad': (
+			\yellow: 1, \green: 2, \left: 6, \right: 7,
+			\hat: 15, \hatUp: 0, \hatDown: 180,
+			\x: 10, \y: 13
+		),
+		'Destroyer Tiltpad': (
+			\yellow: 3, \green: 4, \left: 6, \right: 7,
+			\hat: 8, \hatUp: 1, \hatDown: 5,
+			\x: 0, \y: 1
+		)
+	);
+
 	"General: initializing HID".postln;
-	HID.findAvailable.collect { arg device, id;
-		if(device.productName == "Destroyer Tiltpad", {
-			tiltDevice[devCount] = HID.openAt(id);
+	HID.findAvailable.collect { arg device, id; var index;
+		index = tiltDeviceNameTmp.indexOfEqual(device.productName.asSymbol);
+		if(index.notNil, {
+			tiltDeviceNameTmp[index] = nil;
+			tiltDevice[index] = HID.openAt(id);
 			devCount = devCount + 1;
 		})
 	};
+	HID.postAvailable;
 
 	// --- GUI ------------------------------------------------------------------------------------------------
 
@@ -51,22 +69,45 @@ s.waitForBoot {
 				localAddr.sendMsg("/hid/tiltpad"++index, elid, value, physValue);
 			};
 			// startup TiltPad instance for device
-			tiltPad[index] = TiltPad.new(index, s, Document.current.dir ++ "/Data/" ++ tiltSample[index], paramMode[index], wSamStat, debug);
+			tiltPad[index] = TiltPad.new(
+				index,
+				s,
+				Document.current.dir ++ "/Data/" ++ tiltSample[index],
+				paramMode[index],
+				wSamStat,
+				deviceMap.at(tiltDeviceName[index]),
+				debug
+			);
 		});
+	};
+
+	wSamStat.view.keyDownAction = {
+		arg view, char, modifiers, unicode, keycode, key;
+		// keycode.postln;
+		case
+		{ keycode == 17 and: { modifiers.isAlt } }
+		{
+				tiltDevice.size.do { |index|
+					if(tiltDevice[index].notNil, { tiltPad[index].tremSynth() });
+				};
+		}
+		;
 	};
 
 	wSamStat.onClose = {
 		tiltDevice.size.do { |index|
 			if(tiltDevice[index].notNil, { tiltPad[index].cleanUp() });
 		};
-		HID.closeAll;
+		// OSCdef.freeAll;
+		// ("(OSCdefs after free:"+AbstractResponderFunc.allFuncProxies).postcs;
+		{ HID.closeAll }.defer(0.5);
 	};
 
 	if(devCount > 0, {
 		wSamStat.front;
 	}, {
 		"General: no TiltPad devices found!".postln;
-		HID.closeAll;
+		{ HID.closeAll }.defer(0.5);
 	});
 }
 )

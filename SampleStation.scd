@@ -5,7 +5,6 @@ Sample Station
 dropdown voor samplekeuze
 eenvoud, vooral over samenspelen
 speciale volgorde van activering van tiltpads?
-left en right button niet gebruiken (of één knop voor X en Y samen), controllers altijd actief, len/start met lag zodat het niet te veel jittert
 operator controls via midi keyboard, niet via laptopkeyboard
 
 
@@ -26,8 +25,8 @@ s.waitForBoot {
 	var recFile;
 
 	tiltDeviceName = ['Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'WingMan RumblePad'];
-	tiltSample = ["ME04_wrowrowmelody.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", "TI08_bbrr-bbrr.wav"];
-	paramMode = [\startLen,\tremPitch,\tremPitch, \startLen];
+	tiltSample = ["TI04_tl-tl-tl-tl-tl.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", "TI08_bbrr-bbrr.wav"];
+	paramMode = [\startLen,\startLen,\tremPitch,\tremPitch];
 
 	tiltDeviceNameTmp = tiltDeviceName.copyRange(0,3);
 	s.recChannels = 2;
@@ -36,12 +35,14 @@ s.waitForBoot {
 
 	deviceMap = ( // mapping of element id's to logical names
 		'WingMan RumblePad': (
-			\yellow: 1, \green: 2, \left: 6, \right: 7,
+			\yellow: 1,  \left: 6,
+			// \green: 2, \right: 7,
 			\hat: 15, \hatUp: 0, \hatDown: 180,
 			\x: 10, \y: 14
 		),
 		'Destroyer Tiltpad': (
-			\yellow: 3, \green: 4, \left: 6, \right: 7,
+			\yellow: 3, \left: 6,
+			// \green: 4, \right: 7,
 			\hat: 8, \hatUp: 1, \hatDown: 5,
 			\x: 0, \y: 1
 		)
@@ -80,7 +81,7 @@ s.waitForBoot {
 				wSamStat,
 				deviceMap.at(tiltDeviceName[index]),
 				debug,
-				false
+				true
 			);
 			});
 	};
@@ -152,11 +153,6 @@ s.waitForBoot {
 }
 )
 
-
-a = DiskPlayer.new(s,"/Users/Robert/---data---/Audio/random samples/oguz004a.wav", bufFramePower: 16, autoplay: true)
-a.stop
-a.play
-a.remove
 
 
 // OSC IN monitor, format: OSC IN -- IP -- port -- message

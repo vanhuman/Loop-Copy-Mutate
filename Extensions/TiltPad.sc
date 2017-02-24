@@ -5,15 +5,15 @@ To trigger and control samples from a Gravis Destroyer Tiltpad
 */
 
 TiltPad {
-	var id, server, path, paramMode, win, map, debug; // arguments
+	var id, server, path, paramMode, win, map, debug, startTremolo; // arguments
 	var buffer, soundFileShort, soundFile, soundFileFound, numChans, numFrames, sRate;
 	var name = "TiltPad", playSynth, tremSynth, spec, startPos, leftShift = 0, rightShift = 0, colorOffset = 0.3, tremoloName;
 	var pitchBus, lenBus, startPos, tremBus, volBus;
 	var button, slider, bufferView;
 
 	*new {
-		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false;
-		^super.newCopyArgs(id, server, path, paramMode, win, map, debug).initTiltPad;
+		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true;
+		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo).initTiltPad;
 	}
 
 	initTiltPad {
@@ -23,7 +23,7 @@ TiltPad {
 		server.sync;
 		this.initOSC();
 		this.buildGUI();
-		this.tremSynth();
+		if(startTremolo, { this.tremSynth() });
 	}
 
 	initVars {
@@ -42,7 +42,6 @@ TiltPad {
 		);
 		button = ();
 		slider = ();
-		map.postcs;
 	}
 
 	initBuffer {
@@ -251,7 +250,7 @@ TiltPad {
 	}
 
 	buildGUI {
-		var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height - 50;
+		var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height - 100;
 		var border = 4, view, title;
 		var width = screenWidth / 2 - (1.5*border), height = screenHeight / 2 - (1.5*border);
 		var left = (id%2) * width + ((id%2+1)*border), top = (id > 1).asInt * height + (((id > 1).asInt + 1)*border);
@@ -261,9 +260,7 @@ TiltPad {
 			win.keyDownAction = {
 				arg view, char, modifiers, unicode, keycode, key;
 				// keycode.postln;
-				switch (keycode,
-					17, { this.tremSynth() }
-				);
+				if(keycode == 17 and: { modifiers.isAlt }, { this.tremSynth() });
 			};
 			left = 0; top = 0;
 		});

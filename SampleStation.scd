@@ -2,11 +2,8 @@
 Loop/Copy/Mutate project Genetic Choir
 Sample Station
 
-dropdown voor samplekeuze
-eenvoud, vooral over samenspelen
 speciale volgorde van activering van tiltpads?
-operator controls via midi keyboard, niet via laptopkeyboard
-
+overzetten recordings naar andere computer via file sharing?
 
 */
 
@@ -15,19 +12,25 @@ s.waitForBoot {
 
 	// --- Variables ------------------------------------------------------------------------------------------------
 
-	var debug = false, noDevicesOverride = true;
+	var debug = false, noDevicesOverride = false, heightOffset = 80;
 	var localAddr = NetAddr("127.0.0.1", 57120);
 	var sRate = s.sampleRate;
 	var tiltDevice = Array.newClear(4), tiltPad = Array.newClear(4), tiltSample, tiltDeviceName, tiltDeviceNameTmp;
 	var devCount = 0, paramMode, deviceMap;
-	var wDummy, wSamStat, ctrView, button = ();
+	var wDummy, wSamStat, ctrView, button = (\rec: nil!2, \play: nil!2, \mute: nil!4), bWidth;
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
-	var recFile;
+	var recplay = (
+		path: Array.newClear(2), file: {SoundFile.new}!2, play: Array.newClear(2), len: Array.newClear(2),
+		clockrec: Array.newClear(2), recording: false!2, playing: false!2
+	);
+	var config;
 
-	tiltDeviceName = ['Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'WingMan RumblePad'];
-	tiltSample = ["TI04_tl-tl-tl-tl-tl.wav", "TE07_Swieuwsiew.wav", "ME06_crying.wav", "TI08_bbrr-bbrr.wav"];
-	paramMode = [\startLen,\startLen,\tremPitch,\tremPitch];
+	// --- Initialize ------------------------------------------------------------------------------------------------
 
+	config = "Config.scd".loadRelative[0].clump(4);
+	tiltSample = config[0];
+	paramMode = config[1];
+	tiltDeviceName = config[2];
 	tiltDeviceNameTmp = tiltDeviceName.copyRange(0,3);
 	s.recChannels = 2;
 
@@ -59,6 +62,34 @@ s.waitForBoot {
 	};
 	// HID.postAvailable;
 
+	// --- MIDI ------------------------------------------------------------------------------------------------
+
+	"### Initializing MIDI".postln;
+	MIDIIn.connectAll;
+
+	MIDIdef.noteOn(\LCMnon,{
+		arg val, num, chan, src;
+		["LCMnon", val, num, chan, src].postln;
+		case
+		{ num == 48 } { button[\rec][0].valueAction_( (button[\rec][0].value+1)%3 )}
+		{ num == 52 } { button[\play][0].valueAction_( (button[\play][0].value+1)%2 )}
+		{ num == 55 } { button[\rec][1].valueAction_( (button[\rec][1].value+1)%3 )}
+		{ num == 59 } { button[\play][1].valueAction_( (button[\play][1].value+1)%2 )}
+		{ num == 62 } { if(button[\mute][0].notNil, { button[\mute][0].valueAction_( (button[\mute][0].value+1)%2 ) }) }
+		{ num == 65 } { if(button[\mute][1].notNil, { button[\mute][1].valueAction_( (button[\mute][1].value+1)%2 ) }) }
+		{ num == 69 } { if(button[\mute][2].notNil, { button[\mute][2].valueAction_( (button[\mute][2].value+1)%2 ) }) }
+		{ num == 72 } { if(button[\mute][3].notNil, { button[\mute][3].valueAction_( (button[\mute][3].value+1)%2 ) }) }
+		;
+	}
+	).fix;
+
+	MIDIdef.noteOff(\LCMnof,{
+		arg val, num, chan, src;
+		// ["LCMnof", val, num, chan, src].postln;
+	}
+	).fix;
+	"### Done initializing MIDI".postln;
+
 	// --- GUI ------------------------------------------------------------------------------------------------
 
 	wDummy = Window().front.close;
@@ -81,40 +112,76 @@ s.waitForBoot {
 				wSamStat,
 				deviceMap.at(tiltDeviceName[index]),
 				debug,
-				true
+				true,
+				heightOffset
 			);
 			});
 	};
 
-	ctrView = View(wSamStat, Rect(4, screenHeight - 100, screenWidth - 8, 80)).background_(Color.white);
-	// 4.do { arg i;
-	// 	button[i.asSymbol] = (SmoothButton(ctrView, Rect(i*150+10,10,145,40))
-	// 		.border_(1).radius_(2).canFocus_(false)
-	// 		.states_([
-	// 			[ (i+1)+"- start recording", Color.black, Color.white ],
-	// 			[ (i+1)+"- stop recording", Color.black, Color.red ],
-	// 			[ (i+1)+"- playback", Color.black, Color.green ],
-	// 			[ (i+1)+"- playback again", Color.black, Color.green ],
-	// 			[ (i+1)+"- playback last time", Color.black, Color.green ],
-	// 			[ (i+1)+"- erase??", Color.black, Color.yellow ]
-	// 		])
-	// 		.action_({ arg button;
-	// 			switch(button.value,
-	// 				1, {
-	// 					("RECORDING" + s.recChannels + "channels ############################\n").warn;
-	// 					recFile = thisProcess.platform.recordingsDir++"/LCM_"++
-	// 					Date.getDate.format("_%y%m%d_%H%M%S.")++s.recHeaderFormat.toLower;
-	// 					s.record(recFile);
-	// 				},
-	// 				2, { s.stopRecording },
-	// 				3, { DiskPlayer.new(s, recFile, bufFramePower: 16, autoplay: true, doneAction: 2) },
-	// 				4, { DiskPlayer.new(s, recFile, bufFramePower: 16, autoplay: true, doneAction: 2) },
-	// 				4, { DiskPlayer.new(s, recFile, bufFramePower: 16, autoplay: true, doneAction: 2) },
-	// 				6, { ("mv"+recFile+recFile++".erased").unixCmd }
-	// 			);
-	// 		})
-	// 	);
-	// };
+	ctrView = View(wSamStat, Rect(4, screenHeight - heightOffset, screenWidth - 8, 80)).background_(Color.black);
+	bWidth = screenWidth / 8 - 5;
+	2.do { arg i;
+		button[\rec][i] = (SmoothButton(ctrView, Rect(2 * i * bWidth + 10, 10, bWidth - 5, 25))
+			.border_(1).radius_(2).canFocus_(false)
+			.states_([
+				[ (i+1)+": start recording", Color.black, Color.white ],
+				[ (i+1)+": stop recording", Color.black, Color.red ],
+				[ (i+1)+": record again", Color.black, Color.green ]
+			])
+			.action_({ arg button;
+				if(button.value == 0, { button.value = 1 });
+				if(button.value == 1, {
+						"".postln;
+						("RECORDING" + s.recChannels + "channels").warn;
+					recplay.path[i] =  Document.current.dir++"/Recordings/LCM_track_"++i++
+					Date.getDate.format("_%y%m%d_%H%M%S.")++s.recHeaderFormat.toLower;
+					s.record(recplay.path[i]);
+					recplay.recording[i] = true;
+					{ if(recplay.recording[i], { button.valueAction_(2) }) }.defer(30);
+				}, {
+					s.stopRecording;
+					recplay.recording[i] = false;
+				});
+			})
+		);
+		button[\play][i] = (SmoothButton(ctrView, Rect( (i*2 + 1) * bWidth + 10, 10, bWidth - 5, 25))
+			.border_(1).radius_(2).canFocus_(false)
+			.states_([
+				[ (i+1)+": playback", Color.black, Color.white ],
+				[ (i+1)+": playback", Color.white, Color.blue(1,0.5) ]
+			])
+			.action_({ arg button;
+				if(button.value == 1, {
+					if(recplay.path[i].notNil, {
+						if(recplay.file[i].openRead(recplay.path[i]), {
+							recplay.len[i] = recplay.file[i].numFrames / sRate;
+						});
+						recplay.play[i] = DiskPlayer.new(s,recplay.path[i], bufFramePower: 17, autoplay: true);
+						recplay.playing[i] = true;
+						{ if(recplay.playing[i], { button.valueAction_(0) }) }.defer(recplay.len[i]);
+					}, {
+						{ button.value = 0 }.defer(0.2);
+					});
+				}, {
+					recplay.play[i].stop;
+					recplay.playing[i] = false;
+				})
+			})
+		);
+	};
+
+	tiltDevice.size.do { |index|
+		if(tiltDevice[index].notNil or: { noDevicesOverride }, {
+			button[\mute][index] = (SmoothButton(ctrView, Rect(index * bWidth + (screenWidth / 2) + 10, 10, bWidth - 5, 25))
+				.border_(1).radius_(2).canFocus_(false)
+				.states_([
+					[ "Mute TiltPad-"++index, Color.black, Color.white ],
+					[ "Unmute TiltPad-"++index, Color.white, Color.blue(1,0.5) ]
+				])
+				.action_({ arg button; tiltPad[index].mute(button.value) })
+			);
+		});
+	};
 
 	wSamStat.view.keyDownAction = {
 		arg view, char, modifiers, unicode, keycode, key;
@@ -127,29 +194,24 @@ s.waitForBoot {
 				if(tiltDevice[index].notNil or: { noDevicesOverride }, { tiltPad[index].tremSynth() });
 			};
 		}
-		// { nums.indexOf(keycode).notNil }
-		// {
-		// 	buttonIndex = nums.indexOf(keycode).asSymbol;
-		// 	button[buttonIndex].valueAction_( (button[buttonIndex].value+1)%button[buttonIndex].states.size );
-		// }
 		;
 	};
 
 	wSamStat.onClose = {
 		tiltDevice.size.do { |index|
-			if(tiltDevice[index].notNil or: { noDevicesOverride }, { tiltPad[index].cleanUp() });
+			if(tiltDevice[index].notNil or: { noDevicesOverride }, {
+				if(tiltDevice[index].notNil, { tiltDevice[index].close });
+				tiltPad[index].cleanUp();
+			});
 		};
-		// OSCdef.freeAll;
-		// ("(OSCdefs after free:"+AbstractResponderFunc.allFuncProxies).postcs;
-		{ HID.closeAll }.defer(0.5);
 	};
 
 	if(devCount > 0 or: { noDevicesOverride }, {
 		wSamStat.front;
 	}, {
 		"General: no TiltPad devices found!".postln;
-		{ HID.closeAll }.defer(0.5);
 	});
+
 }
 )
 

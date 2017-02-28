@@ -5,15 +5,15 @@ To trigger and control samples from a Gravis Destroyer Tiltpad
 */
 
 TiltPad {
-	var id, server, path, paramMode, win, map, debug, startTremolo; // arguments
+	var id, server, path, paramMode, win, map, debug, startTremolo, heightOffset; // arguments
 	var buffer, soundFileShort, soundFile, soundFileFound, numChans, numFrames, sRate;
-	var name = "TiltPad", playSynth, tremSynth, spec, startPos, leftShift = 1, rightShift = 1, colorOffset = 0.3, tremoloName, tremMax;
-	var pitchBus, lenBus, startPos, tremBus, volBus;
+	var name = "TiltPad", playSynth, tremSynth, spec, leftShift = 1, rightShift = 1, colorOffset = 0.3, tremoloName, tremMax;
+	var pitchBus, lenBus, tremBus, volBus, startPos, startPosPrev, muteBus;
 	var button, slider, bufferView, font, text, dropSample, sampleList, sampleListDisplay;
 
 	*new {
-		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true;
-		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo).initTiltPad;
+		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true, heightOffset = 50;
+		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo, heightOffset).initTiltPad;
 	}
 
 	initTiltPad {
@@ -35,6 +35,7 @@ TiltPad {
 		pitchBus = Bus.control(server,1).set(1);
 		tremBus = Bus.control(server,1).set(0.2);
 		volBus = Bus.control(server,1).set(0.5);
+		muteBus = Bus.control(server,1).set(0);
 		startPos = 0;
 		spec = (
 			pitch: Env.new([0.5,1,2],[0.5,0.5]),
@@ -83,7 +84,8 @@ TiltPad {
 
 	loadSynthDefs {
 		[1,2].do { |num|
-			SynthDef(\playStartLen++"_"++id++"_"++num, { arg gate = 1, buf, direction = 1, lenBus, start = 0, volBus;
+			SynthDef(\playStartLen++"_"++id++"_"++num, {
+				arg gate = 1, buf, direction = 1, lenBus, start = 0, volBus, muteBus;
 				var sig, env, trig, lenVal, volVal;
 				lenVal = In.kr(lenBus,1);
 				volVal = In.kr(volBus,1);
@@ -91,9 +93,10 @@ TiltPad {
 				env = EnvGen.kr(Env.adsr(0.01,0,1,0.01), gate, doneAction: 2);
 				sig = PlayBufCF.ar(num, buf, direction, trig, start * sRate, 1);
 				if(num == 1, { sig = sig.dup(2) });
-				Out.ar(0, sig * env * volVal);
+				Out.ar(0, sig * env * volVal * (1 - In.kr(muteBus,1)));
 			}).add;
-			SynthDef(\playTremPitch++"_"++id++"_"++num, { arg gate = 1, buf, direction = 1, pitchBus, tremBus, volBus, startPos = 0;
+			SynthDef(\playTremPitch++"_"++id++"_"++num, {
+				arg gate = 1, buf, direction = 1, pitchBus, tremBus, volBus, startPos = 0, muteBus;
 				var sig, env, tremolo, pitchVal, tremVal, volVal, tremLagged, tremOn;
 				pitchVal = In.kr(pitchBus,1);
 				tremVal = In.kr(tremBus,1);
@@ -107,7 +110,7 @@ TiltPad {
 				sig = PlayBufCF.ar(num, buf, pitchVal * direction, 1, startPos, 1);
 				sig = ( tremOn * sig * tremolo ) + ( (1 - tremOn) * sig );
 				if(num == 1, { sig = sig.dup(2) });
-				Out.ar(0, sig * env * volVal);
+				Out.ar(0, sig * env * volVal * (1 - In.kr(muteBus,1)));
 			}).add;
 		};
 		SynthDef(\tremolo++id, { arg tremBus;
@@ -143,7 +146,7 @@ TiltPad {
 			// }
 			{ elid == map[\left] } // left button
 			{
-				rightShift = 1 - value;
+				// if(paramMode == \tremPitch, { rightShift = 1 - value });
 				leftShift = 1 - value;
 				button[\left].value = value;
 				// if(paramMode == \tremPitch, {
@@ -183,26 +186,30 @@ TiltPad {
 				{ paramMode == \startLen }
 				{
 					startPos = spec.start.at(value*127);
-					{ bufferView.setSelectionStart(0, startPos * sRate) }.defer;
-					2.do { arg playMode;
-						if(playSynth[playMode].notNil, {
-							if(debug, { ("set start:"+startPos).postln });
-							this.playBuffer(playMode, 0, \nilBypass);
-							this.playBuffer(playMode, 1, \nilBypass);
-						});
-					}
+					if(startPos != startPosPrev, {
+						{ bufferView.setSelectionStart(0, startPos * sRate) }.defer;
+						2.do { arg playMode;
+							if(playSynth[playMode].notNil, {
+								if(debug, { ("set start:"+startPos).postln });
+								this.playBuffer(playMode, 0, \nilBypass);
+								this.playBuffer(playMode, 1, \nilBypass);
+							});
+						};
+						startPosPrev = startPos;
+					});
 				}
 				{ paramMode == \tremPitch } { tremBus.set(spec.trem.at(value)); if(debug, {("set trem:"+spec.trem.at(value)).postln});  }
 				;
 			}
-			{ elid == map[\y] and: { rightShift == 1 } } // Y-axis
+			{ elid == map[\y] and: { rightShift == 1 }  } // Y-axis
 			{
 				case
 				{ paramMode == \startLen }
 				{
 					lenBus.set(spec.len.at(value));
 					if(debug, {("set len:"+spec.len.at(value)).postln});
-					lenBus.get({ arg busVal; { bufferView.setSelectionSize(0, busVal * sRate) }.defer }); // indirectly to prevent strange jumps
+					// set length in GUI, indirectly to prevent strange jumps
+					lenBus.get({ arg busVal; { bufferView.setSelectionSize(0, busVal * sRate) }.defer });
 				}
 				{ paramMode == \tremPitch } {
 					pitchBus.set(spec.pitch.at(value)); if(debug, {("set pitch:"+spec.pitch.at(value)).postln});
@@ -244,14 +251,18 @@ TiltPad {
 				case
 				{ paramMode == \startLen }
 				{
-					playSynth[playMode] = Synth(\playStartLen++"_"++id++"_"++numChans,
-						[\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ), \volBus, volBus.index, \lenBus, lenBus.index, \start, startPos])
+					playSynth[playMode] = Synth(\playStartLen++"_"++id++"_"++numChans, [
+						\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ),
+						\volBus, volBus.index, \lenBus, lenBus.index, \start, startPos, \muteBus, muteBus.index
+					])
 				}
 				{ paramMode == \tremPitch }
 				{
-					playSynth[playMode] = Synth(\playTremPitch++"_"++id++"_"++numChans,
-						[\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ), \volBus, volBus.index,\pitchBus, pitchBus.index,
-							\tremBus, tremBus.index, \startPos, rrand(0,numFrames)])
+					playSynth[playMode] = Synth(\playTremPitch++"_"++id++"_"++numChans, [
+						\buf, buffer, \direction, ( if(playMode==0) {1} {-1} ),
+						\volBus, volBus.index,\pitchBus, pitchBus.index,
+						\tremBus, tremBus.index, \startPos, rrand(0,numFrames), \muteBus, muteBus.index
+					])
 				}
 				;
 			})
@@ -264,7 +275,7 @@ TiltPad {
 	}
 
 	buildGUI {
-		var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height - 100;
+		var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height - heightOffset;
 		var border = 4, view, title;
 		var width = screenWidth / 2 - (1.5*border), height = screenHeight / 2 - (1.5*border);
 		var left = (id%2) * width + ((id%2+1)*border), top = (id > 1).asInt * height + (((id > 1).asInt + 1)*border);
@@ -280,10 +291,10 @@ TiltPad {
 
 		view = View(win, Rect(left, top, width, height)).background_(Color.white);
 
-		title = (StaticText(view, Rect(width/4 - 10, height - 30, width/4, 20))
-			.string_(name + "sample:").align_(\right).font_(Font(font,12))
+		title = (StaticText(view, Rect(width/4, height - 30, 95, 20))
+			.string_(name + "sample:").font_(Font(font,12))
 		);
-		dropSample = (PopUpMenu(view, Rect(width/2 + 10, height - 30, width/4, 20))
+		dropSample = (PopUpMenu(view, Rect(width/4 + 100, height - 30, 140, 20))
 			.items_(sampleListDisplay).font_(Font(font,12))
 			.action_({ |drop|
 				if(path != sampleList[drop.value], { path = sampleList[drop.value] });
@@ -294,13 +305,29 @@ TiltPad {
 				});
 			})
 		);
+		button[\setDefault]= (SmoothButton(view, Rect(width/4 + 250, height - 30, 70, 20))
+			.border_(1).radius_(2).canFocus_(false).font_(Font(font,12))
+			.states_([ [ "set default" ], [ "set default", Color.white, Color.grey(0.5) ] ])
+			.action_({ |b|
+				if(b.value == 1, {
+					var file, fileContents, path;
+					path = Document.current.dir++"/Config.scd";
+					fileContents = path.load;
+					fileContents[id] = dropSample.item;
+					file = File(path,"w");
+					file.write(fileContents.asCompileString);
+					file.close;
+					{ b.value = 0 }.defer(0.1)
+				});
+			})
+		);
 
 		button[\left] = (SmoothButton(view, Rect(40,height - 140,100,100))
 			.border_(1).radius_(5).canFocus_(false).font_(Font(font,30))
 			.states_([ [ "left\nfront", Color.grey(0.5), Color.grey(0.9) ], [ "left\nfront", Color.white, Color.grey(0.5) ] ])
 		);
-		text[\left] = (StaticText(view, Rect(button[\left].bounds.left, button[\left].bounds.top - 40, button[\left].bounds.width, 30))
-			.string_("- Pause Control -").font_(Font(font,12)).align_(\center)
+		text[\left] = (StaticText(view, Rect(button[\left].bounds.left - 5, button[\left].bounds.top - 40, button[\left].bounds.width + 10, 30))
+			.string_("- Pause X Control -").font_(Font(font,12)).align_(\center)
 		);
 		button[\red] = (SmoothButton(view, Rect(width - 145,height - 145,110,110))
 			.border_(1).radius_(55).canFocus_(false)
@@ -376,14 +403,18 @@ TiltPad {
 		dropSample.value = sampleList.indexOfEqual(path);
 	}
 
+	mute { arg value;
+		muteBus.set(value);
+	}
+
 	cleanUp {
+		OSCdef(name).free; OSCdef(tremoloName).free;
+		(name ++ ": OSCdefs freed.").postln;
 		tremSynth.free;
-		2.do { |playMode| if(playSynth[playMode].notNil, { playSynth[playMode].release }) };
+		2.do { |playMode| if(playSynth[playMode].notNil, { playSynth[playMode].release(0.01) }) };
 		(name ++ ": Synth released.").postln;
 		buffer.free; buffer = nil;
 		(name ++ ": buffer freed.").postln;
-		OSCdef(name).free; OSCdef(tremoloName).free;
-		(name ++ ": OSCdefs freed.").postln;
 	}
 
 	printOn { arg stream;

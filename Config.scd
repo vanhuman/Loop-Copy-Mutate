@@ -1,0 +1,1 @@
+[ "TE02_HeouweskelpCambuur.wav", "TI04_tl-tl-tl-tl-tl.wav", "TE11_Zzzwwwaaaiiizzz.wav", "TI08_bbrr-bbrr.wav", 'startLen', 'startLen', 'tremPitch', 'tremPitch', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'WingMan RumblePad' ]

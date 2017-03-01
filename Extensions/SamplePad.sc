@@ -1,22 +1,21 @@
 /*
-TiltPad Class / developed for the Loop/Copy/Mutate project of the Genetic Choir / by Robert van Heumen
-To trigger and control samples from a Gravis Destroyer Tiltpad
+SamplePad Class / developed for the Loop/Copy/Mutate project of the Genetic Choir / by Robert van Heumen
+To trigger and control samples from a Gravis Destroyer Tiltpad or other gamepads
 (c) 2017
 */
 
-TiltPad {
-	var id, server, path, paramMode, win, map, debug, startTremolo, heightOffset; // arguments
-	var buffer, soundFileShort, soundFile, soundFileFound, numChans, numFrames, sRate;
-	var name = "TiltPad", playSynth, tremSynth, spec, leftShift = 1, rightShift = 1, colorOffset = 0.3, tremoloName, tremMax;
+SamplePad {
+	var id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text; // arguments
+	var buffer, soundFile, numChans, numFrames, sRate;
+	var name = "SamplePad", playSynth, tremSynth, spec, tremoloName, tremMax, button, slider, bufferView;
 	var pitchBus, lenBus, tremBus, volBus, startPos, startPosPrev, muteBus;
-	var button, slider, bufferView, font, text, dropSample, sampleList, sampleListDisplay;
 
 	*new {
-		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true, heightOffset = 50;
-		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo, heightOffset).initTiltPad;
+		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true, heightOffset = 50, text;
+		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text).initSamplePad;
 	}
 
-	initTiltPad {
+	initSamplePad {
 		this.initVars();
 		this.initBuffer();
 		this.loadSynthDefs();
@@ -29,7 +28,7 @@ TiltPad {
 	initVars {
 		// init variables
 		sRate = server.sampleRate;
-		name = name ++ "-" ++ id;
+		name = text[\title] ++ "/" ++ id;
 		tremoloName = "tremolo"++id;
 		playSynth = Array.newClear(2);
 		pitchBus = Bus.control(server,1).set(1);
@@ -42,22 +41,16 @@ TiltPad {
 			trem: Env.new([0.001,0.3],[1])
 		);
 		tremMax = 0.27; // above this speed the tremolo is switched off
-		button = (); slider = (); text = ();
-		font = "Avenir";
-
-		// sample list for dropdown
-		sampleList = (Document.current.dir++"/Data/*").pathMatch;
-		sampleList.takeThese({ arg item, index; PathName.new(item).isFile.not });
-		sampleListDisplay = sampleList.collect { arg sample; subStr(sample, sample.findBackwards("/")+1, sample.size) };
+		button = (); slider = ();
 	}
 
 	initBuffer {
+		var soundFileShort;
 		if(path.notNil, { // read soundfile in buffer
 			soundFileShort = subStr(path, path.findBackwards("/",offset: max(0,(path.size - 30))), path.size);
 			soundFile = SoundFile.new;
 			if(soundFile.openRead(path), {
 				buffer.free;
-				soundFileFound = 1;
 				numChans = soundFile.numChannels;
 				numFrames = soundFile.numFrames;
 				if( paramMode == \startLen, {
@@ -74,7 +67,6 @@ TiltPad {
 				("\n" ++ name ++ "\nsoundfile: '" ++ soundFileShort ++ "'\nnumber of channels: " +
 					numChans + "\nlength" + (numFrames/sRate).round(0.1) + "sec").postln;
 			},{
-				soundFileFound = 0;
 				(name ++ ": ### ERROR ### soundfile: '" ++ soundFileShort ++ "' not found.").postln;
 			});
 		},{
@@ -125,8 +117,8 @@ TiltPad {
 	}
 
 	initOSC {
-		// OSCdef that catches all tiltpad OSC
-		// ("(OSCdefs before:"+AbstractResponderFunc.allFuncProxies).postcs;
+		var leftShift = 1, rightShift = 1;
+		// OSCdef that catches all gamepad OSC
 		OSCdef(name, { arg msg;
 			var elid, value, physValue;
 			// msg.postln;
@@ -139,38 +131,11 @@ TiltPad {
 				this.playBuffer(0,value);
 				button[\yellow].valueAction_(value);
 			}
-			// { elid == map[\green] } // green button
-			// {
-			// 	this.playBuffer(1,value);
-			// 	button[\green].value = value;
-			// }
 			{ elid == map[\left] } // left button
 			{
-				// if(paramMode == \tremPitch, { rightShift = 1 - value });
 				leftShift = 1 - value;
 				button[\left].value = value;
-				// if(paramMode == \tremPitch, {
-				// 	slider[\tremolo].knobColor = Color.blue(1,max(colorOffset,value));
-				// 	}, {
-				// 		if( rightShift == 0 and: { value == 0 },
-				// 			{ { bufferView.setSelectionColor(0, Color.blue(1, colorOffset)) }.defer },
-				// 			{ { bufferView.setSelectionColor(0, Color.blue(1, 0.5)) }.defer }
-				// 		);
-				// });
 			}
-			// { elid == map[\right] } // right button
-			// {
-			// 	rightShift = value;
-			// 	button[\right].value = value;
-			// 	if(paramMode == \tremPitch, {
-			// 		slider[\pitch].hilightColor = Color.red(1,max(colorOffset,value));
-			// 		}, {
-			// 			if( leftShift == 0 and: { value == 0 },
-			// 				{ { bufferView.setSelectionColor(0, Color.blue(1, colorOffset)) }.defer },
-			// 				{ { bufferView.setSelectionColor(0, Color.blue(1, 0.5)) }.defer }
-			// 			);
-			// 	});
-			// }
 			{ elid == map[\hat] } // hatswitch
 			{
 				case
@@ -218,7 +183,7 @@ TiltPad {
 				;
 			}
 			;
-		}, "/hid/tiltpad"++id ).fix;
+		}, "/hid/samplepad"++id ).fix;
 		if(paramMode == \tremPitch, {
 			OSCdef(tremoloName, { arg msg;
 				var dir = msg[2], val = msg[3];
@@ -232,7 +197,6 @@ TiltPad {
 				;
 			}, '/tremolo'++id ).fix;
 		});
-		// ("(OSCdefs after:"+AbstractResponderFunc.allFuncProxies).postcs;
 	}
 
 	tremSynth {
@@ -276,9 +240,14 @@ TiltPad {
 
 	buildGUI {
 		var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height - heightOffset;
-		var border = 4, view, title;
+		var border = 4, view, title, font = "Avenir", textGui = (), dropSample, sampleList, sampleListDisplay;
 		var width = screenWidth / 2 - (1.5*border), height = screenHeight / 2 - (1.5*border);
 		var left = (id%2) * width + ((id%2+1)*border), top = (id > 1).asInt * height + (((id > 1).asInt + 1)*border);
+
+		// sample list for dropdown
+		sampleList = (Document.current.dir++"/Samples/*").pathMatch;
+		sampleList.takeThese({ arg item, index; PathName.new(item).isFile.not });
+		sampleListDisplay = sampleList.collect { arg sample; subStr(sample, sample.findBackwards("/")+1, sample.size) };
 
 		if(win.isNil, { // no window passed, create one
 			win = Window(name, Rect(left, top, width, height)).onClose_({ this.cleanUp() }).front;
@@ -291,10 +260,10 @@ TiltPad {
 
 		view = View(win, Rect(left, top, width, height)).background_(Color.white);
 
-		title = (StaticText(view, Rect(width/4, height - 30, 95, 20))
-			.string_(name + "sample:").font_(Font(font,12))
+		title = (StaticText(view, Rect(width/4, height - 30, 120, 20))
+			.string_(name + "sample:").font_(Font(font,12)).align_(\right)
 		);
-		dropSample = (PopUpMenu(view, Rect(width/4 + 100, height - 30, 140, 20))
+		dropSample = (PopUpMenu(view, Rect(width/4 + 125, height - 30, 140, 20))
 			.items_(sampleListDisplay).font_(Font(font,12))
 			.action_({ |drop|
 				if(path != sampleList[drop.value], { path = sampleList[drop.value] });
@@ -305,7 +274,7 @@ TiltPad {
 				});
 			})
 		);
-		button[\setDefault]= (SmoothButton(view, Rect(width/4 + 250, height - 30, 70, 20))
+		button[\setDefault]= (SmoothButton(view, Rect(width/4 + 275, height - 30, 70, 20))
 			.border_(1).radius_(2).canFocus_(false).font_(Font(font,12))
 			.states_([ [ "set default" ], [ "set default", Color.white, Color.grey(0.5) ] ])
 			.action_({ |b|
@@ -326,7 +295,7 @@ TiltPad {
 			.border_(1).radius_(5).canFocus_(false).font_(Font(font,30))
 			.states_([ [ "left\nfront", Color.grey(0.5), Color.grey(0.9) ], [ "left\nfront", Color.white, Color.grey(0.5) ] ])
 		);
-		text[\left] = (StaticText(view, Rect(button[\left].bounds.left - 5, button[\left].bounds.top - 40, button[\left].bounds.width + 10, 30))
+		textGui[\left] = (StaticText(view, Rect(button[\left].bounds.left - 5, button[\left].bounds.top - 40, button[\left].bounds.width + 10, 30))
 			.string_("- Pause X Control -").font_(Font(font,12)).align_(\center)
 		);
 		button[\red] = (SmoothButton(view, Rect(width - 145,height - 145,110,110))
@@ -335,20 +304,12 @@ TiltPad {
 		);
 		button[\yellow] = (SmoothButton(view, Rect(width - 140,height - 140,100,100))
 			.border_(1).radius_(50).canFocus_(false).font_(Font(font,30))
-			.states_([ [ "", Color.black, Color.yellow(1,colorOffset) ], [ "", Color.black, Color.yellow(1,1) ] ])
+			.states_([ [ text[\yellow], Color.black, Color.yellow(1,0.3) ], [ text[\yellow], Color.black, Color.yellow(1,1) ] ])
 			.action_({ |b| if(b.value == 1, { button[\red].background_(Color.red) }, { button[\red].background_(Color.white) }) })
 		);
-		text[\yellow] = (StaticText(view, Rect(button[\yellow].bounds.left, button[\yellow].bounds.top - 40, button[\yellow].bounds.width, 30))
+		textGui[\yellow] = (StaticText(view, Rect(button[\yellow].bounds.left, button[\yellow].bounds.top - 40, button[\yellow].bounds.width, 30))
 			.string_("- Play Sample -").font_(Font(font,12)).align_(\center)
 		);
-		// button[\right] = (SmoothButton(view, Rect(width - 110,height/2,100,80))
-		// 	.border_(1).radius_(5).canFocus_(false).font_(Font(Font.default,30))
-		// 	.states_([ [ "right\nfront", Color.grey(0.5), Color.grey(0.9) ], [ "right\nfront", Color.white, Color.grey(0.5) ] ])
-		// );
-		// button[\green] = (SmoothButton(view, Rect(width - 220,height - 140,100,100))
-		// 	.border_(1).radius_(50).canFocus_(false).font_(Font(Font.default,30))
-		// 	.states_([ [ "", Color.black, Color.green(1,colorOffset) ], [ "", Color.black, Color.green(1,1) ] ])
-		// );
 
 		case
 		{ paramMode == \startLen }
@@ -368,32 +329,27 @@ TiltPad {
 			bufferView.read(0, numFrames, 512).refresh;
 			bufferView.setSelectionStart(0, 0);
 			lenBus.get {arg val; { bufferView.setSelectionSize(0, val * sRate) }.defer };
-			text[\bufferview] = (StaticText(view, Rect(bufferView.bounds.left, bufferView.bounds.top + bufferView.bounds.height - 20, bufferView.bounds.width, 100))
-				.string_("- Start and End Point -\nTilt left and right to change Start Point\nTilt forwards and backwards to change End Point")
+			textGui[\bufferview] = (StaticText(view, Rect(bufferView.bounds.left, bufferView.bounds.top + bufferView.bounds.height - 20, bufferView.bounds.width, 100))
+				.string_("- Start and End Point -\n"++text[\xsl]++" to change Start Point\n"++text[\ysl]++" to change End Point")
 				.font_(Font(font,12)).align_(\center)
 			);
 		}
 		{ paramMode == \tremPitch }
 		{
-			// button[\left].bounds = Rect(10,height/4,100,80);
-			// button[\right].bounds = Rect(width - 110,height/4,100,80);
-			// button[\green].bounds = Rect(width - 110,height - 140,100,100);
-			// button[\yellow].bounds = Rect(width - 220,height - 140,100,100);
-
 			slider[\tremolo] = (SmoothSlider(view, Rect(width/2 - (width/8) - 10, 20, width/8, height - 60))
 				.canFocus_(false).knobSize_(1).border_(1)
 				.hilightColor_(Color.white).background_(Color.white).knobColor_(Color.blue(1,0.5)).borderColor_(Color.grey)
 			);
-			text[\tremolo] = (StaticText(view, Rect(slider[\tremolo].bounds.left - (width/4) - 25, slider[\tremolo].bounds.top, width/4, 50))
-				.string_("- Tremolo -\nTilt from left to right\nto change speed")
+			textGui[\tremolo] = (StaticText(view, Rect(slider[\tremolo].bounds.left - (width/4) - 25, slider[\tremolo].bounds.top, width/4, 80))
+				.string_("- Tremolo -\n"++text[\xtp]++"\nto change speed")
 				.font_(Font(font,12)).align_(\right)
 			);
 			slider[\pitch] = (SmoothSlider(view, Rect(width/2 + 10, 20, width/8, height - 60))
 				.canFocus_(false).knobSize_(0.01).border_(1).value_(0.5)
 				.hilightColor_(Color.blue(1,0.5)).background_(Color.white).knobColor_(Color.black).borderColor_(Color.grey)
 			);
-			text[\pitch] = (StaticText(view, Rect(slider[\pitch].bounds.left + (width/8) + 20, slider[\pitch].bounds.top, width/4, 50))
-				.string_("- Pitch -\nTilt forwards and backwards\nto change")
+			textGui[\pitch] = (StaticText(view, Rect(slider[\pitch].bounds.left + (width/8) + 20, slider[\pitch].bounds.top, width/4, 80))
+				.string_("- Pitch -\n"++text[\ytp]++"\nto change")
 				.font_(Font(font,12)).align_(\left)
 			);
 		}

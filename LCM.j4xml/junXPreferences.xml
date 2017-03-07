@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Preferences>
+    <COMMENT>
+        <!--*********************************************************************************-->
+        <!-- <ExamplePreferences>-->
+        <!--     <General>a1 | a2 | a3 | a4 | a5 | a6 | a7 | a8 | a9 | a10 | a11 | a12</General>   -->
+        <!--     <ConfigWindow>b1 | b2 | b3 | b4 | b5</ConfigWindow>                         -->
+        <!--     <StatusWindow>c1 | c2 | c3 | c4 | c5</StatusWindow>                         -->
+        <!--     <OSCNames>d1 | d2 | d3 | d4 | d5</OSCNames>                                 -->
+        <!--     <OSCAdresses>e1 | e2 | e3 | e4</OSCAdresses                                 -->
+        <!--     <OSCPorts>f1 | f2 | f3 | f4 | f5</OSCPorts>                                 -->
+        <!--     <SerialInputs>                                                              -->
+        <!--         <Input0>name| a0 | a1 | a2 | a3 |  a4 | a5 | d0 | d1 | ..... | d13 </Input0>  -->
+        <!--     </SerialInputs>                                                             -->
+        <!-- </ExamplePreferences>                                                           -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!--                                                                                 -->
+        <!--  INDEX :                          -->
+        <!-- a1 :  PrefAllDevices      (int)   -->
+        <!-- a2 :  PrefQuickSynth      (int)   -->
+        <!-- a3 :  PrefMidiIn          (int)   -->
+        <!-- a4 :  PrefMidiOut         (int)   -->
+        <!-- a5 :  AutoConfigure       (int)   -->
+        <!-- a6 :  PrefDefaultOut      (int)   -->
+        <!-- a7 :  PrefPortName        (int)   -->
+        <!-- a8 :  PrefMaxElements     (int)   -->
+        <!-- a9 :  PrefMaxTimers       (int)   -->
+        <!-- a10:  PrefMaxOSCMessages  (int)   -->
+        <!-- a11:  PrefOSCInPort       (int)   -->
+        <!-- a12:  PrefDataRange       (int)   -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!-- b1/c1 : WindFlag          (int)   -->
+        <!-- b2/c2 : WindBounds.top    (int)   -->
+        <!-- b3/c3 : WindBounds.left   (int)   -->
+        <!-- b4/c4 : WindoBounds.bottom(int)   -->
+        <!-- b5/c5 : WindBounds.right  (int)   -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!-- d1 :  PrefOSCLocalName    (string)-->
+        <!-- d2 :  PrefOSClient1Name   (string)-->
+        <!-- d3 :  PrefOSClient2Name   (string)-->
+        <!-- d4 :  PrefOSClient3Name   (string)-->
+        <!-- d5 :  PrefOSClient4Name   (string)-->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!-- e1 :  PrefOSCAdress1Name  (string)-->
+        <!-- e2 :  PrefOSCAdress2Name  (string)-->
+        <!-- e3 :  PrefOSCAdress3Name  (string)-->
+        <!-- e4 :  PrefOSCAdress4Name  (string)-->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!-- f1 :  PrefOSCLocalPort    (int)   -->
+        <!-- f2 :  PrefOSClient1Port   (int)   -->
+        <!-- f3 :  PrefOSClient2Port   (int)   -->
+        <!-- f4 :  PrefOSClient3Port   (int)   -->
+        <!-- f5 :  PrefOSClient4Port   (int)   -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!--name:   name of serial device   (string)   -->
+        <!--a0-a5:  AnalogPinEnabled        (bool)     -->
+        <!--d0-d13: DigitalPinEnabled       (bool)     -->
+        <!--*********************************************************************************-->
+        <!--                                                                                 -->
+        <!-- CONFIGURATION PREFERENCES:                                                      -->
+        <!--                                                                                 -->
+    </COMMENT>
+    <gMaxActions>10</gMaxActions>
+    <gMaxActionsFile>100</gMaxActionsFile>
+    <gMaxTables>1</gMaxTables>
+    <gMaxVariables>4</gMaxVariables>
+    <gMaxOSCMessages>0</gMaxOSCMessages>
+    <gMaxTimers>1</gMaxTimers>
+    <gMaxWiiRemotes>1</gMaxWiiRemotes>
+    <FileID>71208</FileID>
+    <gNumSerialPrefs>0</gNumSerialPrefs>
+    <gMaxVideoObjects>0</gMaxVideoObjects>
+    <General>1 | 0 | 1 | 5 | 0 | 5 | MIDI Port | 100 | 1 | 0 | 0 | 127 | 0 | 512 | 0 | 1 | 0 | 0 | 3 | 1</General>
+    <ConfigWindow>0 | 133 | 340 | 778 | 963</ConfigWindow>
+    <StatusWindow>1 | 411 | 150 | 514 | 598</StatusWindow>
+    <OSCNames>OSC local | OSC client 1 | OSC client 2 | OSC client 3 | OSC client 4</OSCNames>
+    <OSCAdresses>192.176.12.25 | 192.176.12.26 | 192.176.12.27 | 192.176.12.28</OSCAdresses>
+    <OSCPorts>57120 | 7777 | 7777 | 7777 | 7777</OSCPorts>
+    <OSCPorts>57120 | 7777 | 7777 | 7777 | 7777</OSCPorts>
+</Preferences>

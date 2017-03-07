@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<OSCMessages>
+    <COMMENT>
+        <!--*************************************************************************-->
+        <!-- <ExampleOSCMessage>a1 | a2 | a3 | a4 | a5 | a6 | a7 | a8 | a9</ExampleOSCMessage> -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!--                                                                         -->
+        <!--  INDEX :                    -->
+        <!-- a1 :  osrcName       (string) -->
+        <!-- a2 :  osrcID         (int)    -->
+        <!-- a3 :  osrcRangeMin   (int)    -->
+        <!-- a4 :  osrcRangeMax   (int)    -->
+        <!-- a5 :  osrcPortID     (int)    -->
+        <!-- a6 :  osrcAdress     (string) -->
+        <!-- a7 :  osrcType       (int)    -->
+        <!-- a8 :  oscrParmIndex  (int)    -->
+        <!-- a9 :  oscrMaxParms   (int)    -->
+        <!--*************************************************************************-->
+        <!--                                                                         -->
+        <!-- CONFIGURATION OSC MESSAGES:                                             -->
+        <!--                                                                         -->
+    </COMMENT>
+    <gMaxOSCMessages>0</gMaxOSCMessages>
+</OSCMessages>

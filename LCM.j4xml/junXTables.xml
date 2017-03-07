@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Tables>
+    <COMMENT>
+        <!--*******************************************************-->
+        <!-- <ExampleTable>a1 | a2 | a3 | a4</ExampleTable>        -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!--                                                       -->
+        <!--  INDEX :                    -->
+        <!-- a1 :  Name        (string)  -->
+        <!-- a2 :  Data Range  (int)     -->
+        <!-- a3 :  Input       (string)  -->
+        <!-- a4 :  Type        (int)     -->
+        <!--*******************************************************-->
+        <!--                                                       -->
+        <!-- CONFIGURATION TABLES:                                 -->
+        <!--                                                       -->
+    </COMMENT>
+    <gMaxTables>1</gMaxTables>
+    <Table1>Invert | 127 | lin,127.00,127.00,0.00; | 0 | 0</Table1>
+</Tables>

@@ -5,14 +5,14 @@ To trigger and control samples from a Gravis Destroyer Tiltpad or other gamepads
 */
 
 SamplePad {
-	var id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text; // arguments
+	var id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text, dir; // arguments
 	var buffer, soundFile, numChans, numFrames, sRate;
 	var name = "SamplePad", playSynth, tremSynth, spec, tremoloName, tremMax, button, slider, bufferView;
 	var pitchBus, lenBus, tremBus, volBus, startPos, startPosPrev, muteBus;
 
 	*new {
-		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true, heightOffset = 50, text;
-		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text).initSamplePad;
+		arg id = 0, server, path, paramMode = \startLen, win, map, debug = false, startTremolo = true, heightOffset = 50, text, dir;
+		^super.newCopyArgs(id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text, dir).initSamplePad;
 	}
 
 	initSamplePad {
@@ -121,7 +121,7 @@ SamplePad {
 		// OSCdef that catches all gamepad OSC
 		OSCdef(name, { arg msg;
 			var elid, value, physValue;
-			// msg.postln;
+			// [name,msg].postln;
 			elid = msg[1];
 			value = msg[2];
 			physValue = msg[3];
@@ -245,7 +245,7 @@ SamplePad {
 		var left = (id%2) * width + ((id%2+1)*border), top = (id > 1).asInt * height + (((id > 1).asInt + 1)*border);
 
 		// sample list for dropdown
-		sampleList = (Document.current.dir++"/Samples/*").pathMatch;
+		sampleList = (dir++"/Samples/*").pathMatch;
 		sampleList.takeThese({ arg item, index; PathName.new(item).isFile.not });
 		sampleListDisplay = sampleList.collect { arg sample; subStr(sample, sample.findBackwards("/")+1, sample.size) };
 
@@ -280,7 +280,7 @@ SamplePad {
 			.action_({ |b|
 				if(b.value == 1, {
 					var file, fileContents, path;
-					path = Document.current.dir++"/Config.scd";
+					path = dir++"/Config.scd";
 					fileContents = path.load;
 					fileContents[id] = dropSample.item;
 					file = File(path,"w");

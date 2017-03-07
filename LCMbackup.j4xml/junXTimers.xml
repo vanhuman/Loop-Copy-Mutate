@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Timers>
+    <COMMENT>
+        <!--***************************************************************-->
+        <!-- <ExampleTimer>a1 | a2 | a3 | a4 | a5 | a6 | a7</ExampleTimer> -->
+        <!-- _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -->
+        <!--                                                               -->
+        <!--  INDEX :                    -->
+        <!-- a1 :  tsrcName       (string) -->
+        <!-- a2 :  tsrcID         (int)    -->
+        <!-- a3 :  tsrcRate       (int)    -->
+        <!-- a4 :  tsrcRepeats    (int)    -->
+        <!-- a5 :  tsrcSteps      (int)    -->
+        <!-- a6 :  tsrcCount      (int)    -->
+        <!-- a7 :  tsrcSyncMode   (int)    -->
+        <!--***************************************************************-->
+        <!--                                                               -->
+        <!-- CONFIGURATION TABLES:                                         -->
+        <!--                                                               -->
+    </COMMENT>
+    <gMaxTimers>1</gMaxTimers>
+    <Timer1>Timer #1 | 0 | 50 | -1 | 128 | 514 | 0</Timer1>
+</Timers>

@@ -39,15 +39,15 @@ s.waitForBoot {
 	// --- HID ------------------------------------------------------------------------------------------------
 
 	~deviceMap = ( // mapping of element id's to logical names
-		'WingMan RumblePad': (
-			\yellow: 2,  \left: 6,
-			\hat: 15, \hatUp: 0, \hatDown: 180, \jhatUp: 1, \jhatDown: 0.57,
-			\x: 10, \y: 11
-		),
 		'Destroyer Tiltpad': (
 			\yellow: 3, \left: 6,
 			\hat: 8, \hatUp: 1, \hatDown: 5, \jhatUp: 1, \jhatDown: 0.57,
 			\x: 0, \y: 1
+		),
+		'WingMan RumblePad': (
+			\yellow: 2,  \left: 6,
+			\hat: 15, \hatUp: 0, \hatDown: 180, \jhatUp: 0, \jhatDown: 0.57,
+			\x: 10, \y: 11
 		)
 	);
 	deviceText = ( // text to display

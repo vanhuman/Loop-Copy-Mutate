@@ -60,7 +60,7 @@
         <!-- CONFIGURATION PREFERENCES:                                                      -->
         <!--                                                                                 -->
     </COMMENT>
-    <gMaxActions>10</gMaxActions>
+    <gMaxActions>20</gMaxActions>
     <gMaxActionsFile>100</gMaxActionsFile>
     <gMaxTables>1</gMaxTables>
     <gMaxVariables>4</gMaxVariables>
@@ -69,8 +69,8 @@
     <gMaxWiiRemotes>1</gMaxWiiRemotes>
     <FileID>71208</FileID>
     <gNumSerialPrefs>0</gNumSerialPrefs>
-    <gMaxVideoObjects>0</gMaxVideoObjects>
-    <General>1 | 0 | 1 | 5 | 0 | 5 | MIDI Port | 100 | 1 | 0 | 0 | 127 | 0 | 512 | 0 | 1 | 0 | 0 | 3 | 1</General>
+    <gMaxVideoObjects>1</gMaxVideoObjects>
+    <General>0 | 0 | 0 | 5 | 0 | 5 | MIDI Port | 100 | 1 | 0 | 0 | 127 | 0 | 512 | 0 | 1 | 0 | 0 | 3 | 1</General>
     <ConfigWindow>0 | 133 | 340 | 778 | 963</ConfigWindow>
     <StatusWindow>1 | 411 | 150 | 514 | 598</StatusWindow>
     <OSCNames>OSC local | OSC client 1 | OSC client 2 | OSC client 3 | OSC client 4</OSCNames>

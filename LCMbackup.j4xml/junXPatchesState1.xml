@@ -133,14 +133,14 @@
     <Patch8>
         <Patch>0 | 0 | 0 | 7 | 0 | 0 | 0</Patch>
         <HIDSource>
-            <DevID>1149 | 16392 | 336658432 | Destroyer Tiltpad | 4</DevID>
-            <General>Button #2 | 7 | 2 | 9 | 0 | 256 | 7</General>
+            <DevID>1149 | 16392 | 336658432 | Destroyer Tiltpad | 7</DevID>
+            <General>Button #5 | 7 | 5 | 9 | 0 | 256 | 7</General>
         </HIDSource>
     </Patch8>
     <Patch9>
         <Patch>0 | 0 | 0 | 8 | 0 | 0 | 0</Patch>
         <HIDSource>
-            <DevID>1149 | 16392 | 336658432 | Destroyer Tiltpad | 7</DevID>
+            <DevID>1149 | 16392 | 336723968 | Destroyer Tiltpad | 7</DevID>
             <General>Button #5 | 7 | 5 | 9 | 0 | 256 | 7</General>
         </HIDSource>
     </Patch9>

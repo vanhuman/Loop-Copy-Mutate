@@ -2,12 +2,14 @@
 
 var localAddr = NetAddr("127.0.0.1", 57120);
 var fSendMsg = { arg label, msg;
-	var elid = ~deviceMap.at(~hidDeviceName[msg[1]]).at(label);
 	var id = (msg[1] * 127).round(1);
+	var elid = ~deviceMap.at(~hidDeviceName[id]).at(label);
+	// [id,msg].postln;
+	// ["/hid/samplepad"++id, elid, msg[2]].postln;
 	localAddr.sendMsg("/hid/samplepad"++id, elid, msg[2]);
 };
 
-(~docDir ++ "/LCM.j4xml").openOS;
+// (~docDir ++ "/LCM.j4xml").openOS;
 
 OSCdef(\jx_x, { arg msg;
 	fSendMsg.value(\x, msg);
@@ -26,15 +28,17 @@ OSCdef(\jx_left, { arg msg;
 }, "/jx/left").fix;
 
 OSCdef(\jx_hat, { arg msg;
-	var elid = ~deviceMap.at(~hidDeviceName[msg[1]]).at(\hat);
 	var id = (msg[1] * 127).round(1);
-	var physVal;
-	if(msg[2].round(0.01) ==  ~deviceMap.at(~hidDeviceName[msg[1]]).at(\jhatUp).round(0.01), {
-		physVal = ~deviceMap.at(~hidDeviceName[msg[1]]).at(\hatUp)
+	var elid = ~deviceMap.at(~hidDeviceName[id]).at(\hat);
+	var physVal = 1000;
+	if(msg[2].round(0.01) ==  ~deviceMap.at(~hidDeviceName[id]).at(\jhatUp).round(0.01), {
+		physVal = ~deviceMap.at(~hidDeviceName[id]).at(\hatUp)
 	});
-	if(msg[2].round(0.01) ==  ~deviceMap.at(~hidDeviceName[msg[1]]).at(\jhatDown).round(0.01), {
-		physVal = ~deviceMap.at(~hidDeviceName[msg[1]]).at(\hatDown)
+	if(msg[2].round(0.01) ==  ~deviceMap.at(~hidDeviceName[id]).at(\jhatDown).round(0.01), {
+		physVal = ~deviceMap.at(~hidDeviceName[id]).at(\hatDown)
 	});
+	// [id,msg].postln;
+	// ["/hid/samplepad"++id, elid, msg[2], physVal].postln;
 	localAddr.sendMsg("/hid/samplepad"++id, elid, msg[2], physVal);
 }, "/jx/hat").fix;
 

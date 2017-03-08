@@ -106,8 +106,8 @@
         <!-- CONFIGURATION ACTIONS:                                                      -->
         <!--                                                                             -->
     </COMMENT>
-    <gMaxActions>10</gMaxActions>
-    <maxActionsFile>10</maxActionsFile>
+    <gMaxActions>20</gMaxActions>
+    <maxActionsFile>20</maxActionsFile>
     <Action1>
         <Description>no description yet...</Description>
         <General>dev0: X | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
@@ -308,4 +308,204 @@
             <ActionSortList>9 | 9</ActionSortList>
         </OUTEvent>
     </Action10>
+    <Action11>
+        <Description>no description yet...</Description>
+        <General>dev3: X | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 1 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/x | 2 | 3 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>10 | 10</ActionSortList>
+        </OUTEvent>
+    </Action11>
+    <Action12>
+        <Description>no description yet...</Description>
+        <General>dev3: Y | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 1 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/y | 2 | 3 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>11 | 11</ActionSortList>
+        </OUTEvent>
+    </Action12>
+    <Action13>
+        <Description>no description yet...</Description>
+        <General>dev3: yellow | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 51 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/yellow | 2 | 3 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>12 | 12</ActionSortList>
+        </OUTEvent>
+    </Action13>
+    <Action14>
+        <Description>no description yet...</Description>
+        <General>dev3: left | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 52 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/left | 2 | 3 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>13 | 13</ActionSortList>
+        </OUTEvent>
+    </Action14>
+    <Action15>
+        <Description>no description yet...</Description>
+        <General>dev3: hat | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 5 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/hat | 2 | 3 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>14 | 14</ActionSortList>
+        </OUTEvent>
+    </Action15>
+    <Action16>
+        <Description>no description yet...</Description>
+        <General>dev2: X | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 16 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/x | 2 | 2 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>15 | 15</ActionSortList>
+        </OUTEvent>
+    </Action16>
+    <Action17>
+        <Description>no description yet...</Description>
+        <General>dev2: Y | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 1 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/y | 2 | 2 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>16 | 16</ActionSortList>
+        </OUTEvent>
+    </Action17>
+    <Action18>
+        <Description>no description yet...</Description>
+        <General>dev2: yellow | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 51 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/yellow | 2 | 2 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>17 | 17</ActionSortList>
+        </OUTEvent>
+    </Action18>
+    <Action19>
+        <Description>no description yet...</Description>
+        <General>dev2: left | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 52 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/left | 2 | 2 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>18 | 18</ActionSortList>
+        </OUTEvent>
+    </Action19>
+    <Action20>
+        <Description>no description yet...</Description>
+        <General>dev2: hat | 0 | 3 | false | 0 | 0 | 65536 | 0</General>
+        <Behavior>0 | 85 | false | 0 | 0 | 5 | 0 | 0 | 0 | 100</Behavior>
+        <Change>0 | 0 | 0 | 516 | 0 | 0</Change>
+        <Continue>0 | false | 33026 | 0 | 0 | 49539</Continue>
+        <Store>0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0</Store>
+        <GenerateOutput>1 | false | 0 | 50571 | 0 | 57795</GenerateOutput>
+        <State>0 | 0 | -3</State>
+        <OutputEvent>0 | 0 | 0</OutputEvent>
+        <OUTEvent>
+            <outStatus>288</outStatus>
+            <Midi>false | 0 | -3 | false | 5 | -3 | true | 0 | -3 | 5 | 0</Midi>
+            <OSC>2 | 0 | /jx/hat | 2 | 2 | -3</OSC>
+            <WiiFeedback>false | 0 | -3 | true | 0 | -3</WiiFeedback>
+            <MouseEvent>false | 0 | -3 | false | 0 | -3 | true | 0 | -3 | true | 0 | -3</MouseEvent>
+            <ArduinoOutput>0 | false | 13 | -3 | true | 0 | -3 | true | 0 | -3</ArduinoOutput>
+            <ActionSortList>19 | 19</ActionSortList>
+        </OUTEvent>
+    </Action20>
 </Actions>

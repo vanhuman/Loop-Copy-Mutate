@@ -1,24 +1,18 @@
 /*
 Loop/Copy/Mutate project Genetic Choir
 Sample Station
-
-speciale volgorde van activering van gamepads?
 */
 
 (
-~docDir = "/Users/Robert/---data---/audio/SC-2017/Loop-Copy-Mutate"; // needed for SC3.6.6. only
 s.waitForBoot {
 
 	// --- Variables ------------------------------------------------------------------------------------------------
 
-	var osc = \hid; // \jx: get data via junXion, \hid: get data directly
 	var debug = false, noDevicesOverride = false, heightOffset = 80, copyRecs = true;
-	var localAddr = NetAddr("127.0.0.1", 57120);
 	var remoteFileServer = "/Volumes/LCM/";
-	// var remoteFileServer = "/Users/Robert/Desktop/";
-	var sRate = s.sampleRate;
-	var hidDevice = Array.newClear(4), samplePad = Array.newClear(4), sampleList;
-	var paramMode, deviceText, fCopyRecs;
+	var localAddr = NetAddr("127.0.0.1", 57120), sRate = s.sampleRate;
+	var hidDevice = Array.newClear(4), samplePad = Array.newClear(4), sampleList, hidDeviceName, hidDeviceNameTmp;
+	var paramMode, deviceText, fCopyRecs, deviceMap, devCount = 0;
 	var wDummy, wSamStat, ctrView, button = (\rec: nil!2, \play: nil!2, \mute: nil!4), bWidth;
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
 	var recplay = (
@@ -32,21 +26,21 @@ s.waitForBoot {
 	config = "Config.scd".loadRelative[0].clump(4);
 	sampleList = config[0];
 	paramMode = config[1];
-	~hidDeviceName = config[2];
-	~hidDeviceNameTmp = ~hidDeviceName.copyRange(0,3);
+	hidDeviceName = config[2];
+	hidDeviceNameTmp = hidDeviceName.copyRange(0,3);
 	s.recChannels = 2;
 
 	// --- HID ------------------------------------------------------------------------------------------------
 
-	~deviceMap = ( // mapping of element id's to logical names
+	deviceMap = ( // mapping of element id's to logical names
 		'Destroyer Tiltpad': (
 			\yellow: 3, \left: 6,
-			\hat: 8, \hatUp: 1, \hatDown: 5, \jhatUp: 1, \jhatDown: 0.57,
+			\hat: 8, \hatUp: 1, \hatDown: 5,
 			\x: 0, \y: 1
 		),
 		'WingMan RumblePad': (
 			\yellow: 2,  \left: 6,
-			\hat: 15, \hatUp: 0, \hatDown: 180, \jhatUp: 0, \jhatDown: 0.57,
+			\hat: 15, \hatUp: 0, \hatDown: 180,
 			\x: 10, \y: 11
 		)
 	);
@@ -69,16 +63,15 @@ s.waitForBoot {
 		)
 	);
 
-	if(osc == \hid, {
-		"### Initializing HID".postln;
-		~devCount = 0;
-		hidDevice = "HIDinit.scd".loadRelative()[0];
-	}, {
-		"### Bypassing HID, using JunXion instead".postln;
-		noDevicesOverride = true;
-		~devCount = 4;
-		"junXionMap.scd".loadRelative()[0];
-	});
+	"### Initializing HID".postln;
+	HID.findAvailable.collect { arg device, id; var index;
+		index = hidDeviceNameTmp.indexOfEqual(device.productName.asSymbol);
+		if(index.notNil, {
+			hidDeviceNameTmp[index] = nil;
+			hidDevice[index] = HID.openAt(id);
+			devCount = devCount + 1;
+		})
+	};
 
 	// --- MIDI ------------------------------------------------------------------------------------------------
 
@@ -87,7 +80,7 @@ s.waitForBoot {
 
 	MIDIdef.noteOn(\LCMnon,{
 		arg val, num, chan, src;
-		["LCMnon", val, num, chan, src].postln;
+		// ["LCMnon", val, num, chan, src].postln;
 		case
 		{ num == 48 } { button[\rec][0].valueAction_( (button[\rec][0].value+1)%3 )}
 		{ num == 52 } { button[\play][0].valueAction_( (button[\play][0].value+1)%2 )}
@@ -127,9 +120,6 @@ s.waitForBoot {
 			// define action for device
 			if(hidDevice[index].notNil, {
 				hidDevice[index].action = { | value, physValue, rawValue,  arrayValue, usage, page, elid |
-					if(elid == 8, {
-						[value, physValue, rawValue,  arrayValue].postln;
-					});
 					localAddr.sendMsg("/hid/samplepad"++index, elid, value, physValue);
 				};
 			});
@@ -137,15 +127,14 @@ s.waitForBoot {
 			samplePad[index] = SamplePad.new(
 				index,
 				s,
-				~docDir ++ "/Samples/" ++ sampleList[index],
+				Document.dir ++ "Loop-Copy-Mutate/Samples/" ++ sampleList[index],
 				paramMode[index],
 				wSamStat,
-				~deviceMap.at(~hidDeviceName[index]),
+				deviceMap.at(hidDeviceName[index]),
 				debug,
 				false, // start tremolo
 				heightOffset, // space for bottom bar with record/play/mute buttons
-				deviceText.at(~hidDeviceName[index]),
-				~docDir
+				deviceText.at(hidDeviceName[index])
 			);
 			});
 	};
@@ -168,7 +157,7 @@ s.waitForBoot {
 				if(button.value == 1, {
 						"".postln;
 						("RECORDING" + s.recChannels + "channels").warn;
-					recplay.path[i] =  ~docDir++"/Recordings/LCM_track_"++i++
+					recplay.path[i] =  Document.current.dir++"/Recordings/LCM_track_"++i++
 					Date.getDate.format("_%y%m%d_%H%M%S.")++s.recHeaderFormat.toLower;
 					s.record(recplay.path[i]);
 					recplay.recording[i] = true;
@@ -213,8 +202,8 @@ s.waitForBoot {
 			button[\mute][index] = (SmoothButton(ctrView, Rect(index * bWidth + (screenWidth / 2) + 10, 10, bWidth - 5, 25))
 				.border_(1).radius_(2).canFocus_(false)
 				.states_([
-					[ "Mute "++deviceText[~hidDeviceName[index]][\title]++"/"++index, Color.black, Color.white ],
-					[ "Unmute "++deviceText[~hidDeviceName[index]][\title]++"/"++index, Color.white, Color.red ]
+					[ "Mute "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.black, Color.white ],
+					[ "Unmute "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.white, Color.red ]
 				])
 				.action_({ arg button; samplePad[index].mute(button.value) })
 			);
@@ -242,16 +231,9 @@ s.waitForBoot {
 				samplePad[index].cleanUp();
 			});
 		};
-		if(osc == \jx, {
-			OSCdef(\jx_x).free;
-			OSCdef(\jx_y).free;
-			OSCdef(\jx_yellow).free;
-			OSCdef(\jx_leftfront).free;
-			OSCdef(\jx_hat).free;
-		});
 	};
 
-	if(~devCount > 0 or: { noDevicesOverride }, {
+	if(devCount > 0 or: { noDevicesOverride }, {
 		wSamStat.front;
 	}, {
 		"### No devices found!".postln;

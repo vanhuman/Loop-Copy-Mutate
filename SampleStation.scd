@@ -1,6 +1,9 @@
 /*
 Loop/Copy/Mutate project Genetic Choir
 Sample Station
+
+Solo ipv mute, en geen button maar duidelijke kleur in kwartier
+
 */
 
 (
@@ -8,12 +11,12 @@ s.waitForBoot {
 
 	// --- Variables ------------------------------------------------------------------------------------------------
 
-	var debug = false, noDevicesOverride = false, heightOffset = 80, copyRecs = true;
-	var remoteFileServer = "/Volumes/LCM/";
+	var debug = false, noDevicesOverride = false, heightOffset = 80, copyRecs = true, maxRecord = 60;
+	var remoteFileServer = "/Volumes/LCM/", type = "melody/";
 	var localAddr = NetAddr("127.0.0.1", 57120), sRate = s.sampleRate;
 	var hidDevice = Array.newClear(4), samplePad = Array.newClear(4), sampleList, hidDeviceName, hidDeviceNameTmp;
-	var paramMode, deviceText, fCopyRecs, deviceMap, devCount = 0;
-	var wDummy, wSamStat, ctrView, button = (\rec: nil!2, \play: nil!2, \mute: nil!4), bWidth;
+	var paramMode, deviceText, fCopyRecs, deviceMap, devCount = 0, fSolo;
+	var wDummy, wSamStat, ctrView, button = (\rec: nil!2, \play: nil!2, \solo: nil!4), bWidth;
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
 	var recplay = (
 		path: Array.newClear(2), file: {SoundFile.new}!2, play: Array.newClear(2), len: Array.newClear(2),
@@ -83,13 +86,13 @@ s.waitForBoot {
 		// ["LCMnon", val, num, chan, src].postln;
 		case
 		{ num == 48 } { button[\rec][0].valueAction_( (button[\rec][0].value+1)%3 )}
-		{ num == 52 } { button[\play][0].valueAction_( (button[\play][0].value+1)%2 )}
-		{ num == 55 } { button[\rec][1].valueAction_( (button[\rec][1].value+1)%3 )}
-		{ num == 59 } { button[\play][1].valueAction_( (button[\play][1].value+1)%2 )}
-		{ num == 62 } { if(button[\mute][0].notNil, { button[\mute][0].valueAction_( (button[\mute][0].value+1)%2 ) }) }
-		{ num == 65 } { if(button[\mute][1].notNil, { button[\mute][1].valueAction_( (button[\mute][1].value+1)%2 ) }) }
-		{ num == 69 } { if(button[\mute][2].notNil, { button[\mute][2].valueAction_( (button[\mute][2].value+1)%2 ) }) }
-		{ num == 72 } { if(button[\mute][3].notNil, { button[\mute][3].valueAction_( (button[\mute][3].value+1)%2 ) }) }
+		{ num == 50 } { button[\play][0].valueAction_( (button[\play][0].value+1)%2 )}
+		{ num == 52 } { button[\rec][1].valueAction_( (button[\rec][1].value+1)%3 )}
+		{ num == 53 } { button[\play][1].valueAction_( (button[\play][1].value+1)%2 )}
+		{ num == 60 } { if(button[\solo][0].notNil, { button[\solo][0].valueAction_( (button[\solo][0].value+1)%2 ) }) }
+		{ num == 62 } { if(button[\solo][1].notNil, { button[\solo][1].valueAction_( (button[\solo][1].value+1)%2 ) }) }
+		{ num == 64 } { if(button[\solo][2].notNil, { button[\solo][2].valueAction_( (button[\solo][2].value+1)%2 ) }) }
+		{ num == 65 } { if(button[\solo][3].notNil, { button[\solo][3].valueAction_( (button[\solo][3].value+1)%2 ) }) }
 		;
 	}
 	).fix;
@@ -105,8 +108,8 @@ s.waitForBoot {
 
 	fCopyRecs = { arg path;
 		if(copyRecs and: { path.notNil }, {
-			("cp \"" ++ path ++ "\" \"" ++ remoteFileServer ++ "\"").unixCmd;
-			("unixCmd: cp \"" ++ path ++ "\" \"" ++ remoteFileServer ++ "\"").postln;
+			("cp \"" ++ path ++ "\" \"" ++ remoteFileServer ++ type ++ "\"").unixCmd;
+			("unixCmd: cp \"" ++ path ++ "\" \"" ++ remoteFileServer ++ type ++ "\"").postln;
 		});
 	};
 
@@ -161,7 +164,7 @@ s.waitForBoot {
 					Date.getDate.format("_%y%m%d_%H%M%S.")++s.recHeaderFormat.toLower;
 					s.record(recplay.path[i]);
 					recplay.recording[i] = true;
-					{ if(recplay.recording[i], { button.valueAction_(2) }) }.defer(30);
+					{ if(recplay.recording[i], { button.valueAction_(2) }) }.defer(maxRecord);
 				}, {
 					s.stopRecording;
 					recplay.recording[i] = false;
@@ -199,15 +202,41 @@ s.waitForBoot {
 	// mute buttons
 	hidDevice.size.do { |index|
 		if(hidDevice[index].notNil or: { noDevicesOverride }, {
-			button[\mute][index] = (SmoothButton(ctrView, Rect(index * bWidth + (screenWidth / 2) + 10, 10, bWidth - 5, 25))
+			button[\solo][index] = (SmoothButton(ctrView, Rect(index * bWidth + (screenWidth / 2) + 10, 10, bWidth - 5, 25))
 				.border_(1).radius_(2).canFocus_(false)
 				.states_([
-					[ "Mute "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.black, Color.white ],
-					[ "Unmute "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.white, Color.red ]
+					[ "Solo "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.black, Color.white ],
+					[ "Solo "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.white, Color.red ]
 				])
-				.action_({ arg button; samplePad[index].mute(button.value) })
+				.action_({ arg button; fSolo.value(index, button.value);
+				})
 			);
 		});
+	};
+
+	fSolo = {
+		arg thisButton, value;
+		if(value == 1, { // thisButton solo switched on
+			button[\solo].size.do { |i| // unmute all devices that are muted
+				if(button[\solo][i].notNil and: { i != thisButton } and: { button[\solo][i].value == 1 }, {
+					button[\solo][i].valueAction_(0)
+				});
+			};
+			button[\solo].size.do { |i| // mute devices except thisButton
+				if(button[\solo][i].notNil and: { i != thisButton }, {
+					samplePad[i].mute(1);
+					("Mute device"+i).postln;
+				});
+			}
+		}, { // solo switched off
+			button[\solo].size.do { |i| // unmute all devices
+				if(button[\solo][i].notNil and: { i != thisButton }, {
+					samplePad[i].mute(0);
+					("Unmute device"+i).postln;
+				});
+			}
+		})
+
 	};
 
 	wSamStat.view.keyDownAction = {
@@ -230,6 +259,7 @@ s.waitForBoot {
 				if(hidDevice[index].notNil, { hidDevice[index].close });
 				samplePad[index].cleanUp();
 			});
+			MIDIdef(\LCMnon).free; MIDIdef(\LCMnof).free;
 		};
 	};
 

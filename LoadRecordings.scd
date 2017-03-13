@@ -33,8 +33,8 @@ OSCdef(\lcmNON, { |msg|
 		chosen = rand( soundLists[index].size );
 		sample = soundLists[index].at(chosen);
 		("\nSample of type" + soundTypes[index] + "chosen:" + soundListsDisp[index].at(chosen)).postln;
-		{ text.string = soundListsDisp[index].at(chosen) }.defer;
-		playSynth[index] = DiskPlayer.new(s, sample, loop: 1, bufPwr: 17, autoPlay: true, lev: level, rate: rate, ff: ff);
+		{ text.string = soundTypes[index] ++ ":" + soundListsDisp[index].at(chosen) }.defer;
+		playSynth[index] = DiskPlayer.new(s, sample, ~aBus.outMain, loop: 1, bufPwr: 17, autoPlay: true, lev: level, rate: rate, ff: ff);
 	});
 
 }, "/midi/noteOn").fix;

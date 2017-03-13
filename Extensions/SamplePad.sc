@@ -7,7 +7,7 @@ To trigger and control samples from a Gravis Destroyer Tiltpad or other gamepads
 SamplePad {
 	var id, server, path, paramMode, win, map, debug, startTremolo, heightOffset, text; // arguments
 	var buffer, soundFile, numChans, numFrames, sRate;
-	var name = "SamplePad", playSynth, tremSynth, spec, tremoloName, tremMax, button, slider, bufferView;
+	var name = "SamplePad", playSynth, tremSynth, spec, tremoloName, tremMax, button, slider, bufferView, viewCover;
 	var pitchBus, lenBus, tremBus, volBus, startPos, startPosPrev, muteBus;
 
 	*new {
@@ -355,12 +355,16 @@ SamplePad {
 		}
 		;
 
+		// mute/unmute layover
+		viewCover = View(win, Rect(left, top, width, height)).background_(Color.grey).visible_(false);
+
 		// set initial sample in dropdown
 		dropSample.value = sampleList.indexOfEqual(path);
 	}
 
 	mute { arg value;
 		muteBus.set(value);
+		{ switch(value, 0, { viewCover.visible_(false) }, 1, { viewCover.visible_(true) }) }.defer;
 	}
 
 	cleanUp {

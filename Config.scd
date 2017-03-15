@@ -1,1 +1,1 @@
-[ "TE02_HeouweskelpCambuur.wav", "TI04_tl-tl-tl-tl-tl.wav", "TE11_Zzzwwwaaaiiizzz.wav", "TI05_ding-dong.wav", 'startLen', 'startLen', 'tremPitch', 'tremPitch', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'WingMan RumblePad' ]
+[ "TE02_HeouweskelpCambuur.wav", "TI04_tl-tl-tl-tl-tl.wav", "TE11_Zzzwwwaaaiiizzz.wav", "TI05_ding-dong.wav", 'startLen', 'startLen', 'tremPitch', 'tremPitch', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Firestorm Wireless Gamepad', 'WingMan RumblePad' ]

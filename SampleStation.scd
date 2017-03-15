@@ -45,9 +45,22 @@ s.waitForBoot {
 			\yellow: 2,  \left: 6,
 			\hat: 15, \hatUp: 0, \hatDown: 180,
 			\x: 10, \y: 11
+		),
+		'Firestorm Wireless Gamepad': (
+			\yellow: 2,  \left: 4,
+			\hat: 15, \hatUp: 0, \hatDown: 180,
+			\x: 12, \y: 13
 		)
 	);
 	deviceText = ( // text to display
+		'Destroyer Tiltpad': (
+			\title: "Tiltpad",
+			\yellow: "",
+			\xtp: "Tilt left and right",
+			\ytp: "Tilt forwards and backwards",
+			\xsl: "Tilt left and right",
+			\ysl: "Tilt forwards and backwards"
+		),
 		'WingMan RumblePad': (
 			\title: "RumblePad",
 			\yellow: "C",
@@ -56,13 +69,13 @@ s.waitForBoot {
 			\xsl: "Move left joystick left and right", // text for startLen paramMode
 			\ysl: "Move left joystick up and down"
 		),
-		'Destroyer Tiltpad': (
-			\title: "Tiltpad",
+		'Firestorm Wireless Gamepad': (
+			\title: "Thrustmast",
 			\yellow: "",
-			\xtp: "Tilt left and right",
-			\ytp: "Tilt forwards and backwards",
-			\xsl: "Tilt left and right",
-			\ysl: "Tilt forwards and backwards"
+			\xtp: "Move left joystick\nleft and right", // text for tremPitch paramMode
+			\ytp: "Move left joystick\nup and down",
+			\xsl: "Move left joystick left and right", // text for startLen paramMode
+			\ysl: "Move left joystick up and down"
 		)
 	);
 
@@ -123,6 +136,7 @@ s.waitForBoot {
 			// define action for device
 			if(hidDevice[index].notNil, {
 				hidDevice[index].action = { | value, physValue, rawValue,  arrayValue, usage, page, elid |
+					// [value, physValue,elid].postln;
 					localAddr.sendMsg("/hid/samplepad"++index, elid, value, physValue);
 				};
 			});

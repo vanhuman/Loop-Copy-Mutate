@@ -125,6 +125,7 @@ SamplePad {
 			elid = msg[1];
 			value = msg[2];
 			physValue = msg[3];
+			[elid,value,physValue].postln;
 			case
 			{ elid == map[\yellow] } // yellow button
 			{
@@ -177,7 +178,8 @@ SamplePad {
 					lenBus.get({ arg busVal; { bufferView.setSelectionSize(0, busVal * sRate) }.defer });
 				}
 				{ paramMode == \tremPitch } {
-					pitchBus.set(spec.pitch.at(value)); if(debug, {("set pitch:"+spec.pitch.at(value)).postln});
+					pitchBus.set(spec.pitch.at(value));
+					if(debug, {("set pitch:"+spec.pitch.at(value)).postln});
 					slider[\pitch].value = value;
 				}
 				;

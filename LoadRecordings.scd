@@ -4,36 +4,23 @@
 
 // var path = "/Volumes/LCM/";
 var path = "/Users/Robert/Desktop/LCM/";
-var soundTypes = [\texture, \melody];
 var soundNotes = [72, 73];
+var soundNames = ["sampleStation0.aiff", "sampleStation1.aiff"];
 var win, text;
-var level = 1, rate = 1, ff = 20000, soundLists = [ [ ], [ ] ], soundListsDisp = [ [ ], [ ] ], playSynth = Array.newClear(2);
-
-// initialize
-soundTypes.size.do { arg index;
-	soundLists[index] = (path++soundTypes[index]++"/*").pathMatch;
-	soundListsDisp[index] = Array.newClear(soundLists[index].size);
-	soundLists[index].size.do { |i|
-		var path = soundLists[index][i];
-		soundListsDisp[index][i] = subStr(path, path.findBackwards("/") + 1, path.size);
-	};
-	("\nSound type " ++ soundTypes[index] ++ ":\n" ++ soundListsDisp[index]).postln;
-};
+var level = 1, rate = 1, ff = 20000, playSynth = Array.newClear(2);
 
 win = Window("LCM load recordings", Rect(20, 300, 700, 100));
 text = (StaticText(win, Rect(10,10, 680, 80)).string_("###").font_(Font("Monaco",30)));
 
 OSCdef(\lcmNON, { |msg|
 	var chan, note, vel, src;
-	var index, sample, chosen;
+	var index, sample;
 	chan = msg[1]; note = msg[2]; vel = msg[3]; src = msg[4].asString;
 	// ["LCM NON",chan,note,vel, src].postln;
 	index = soundNotes.indexOfEqual(note);
 	if( index.notNil, {
-		chosen = rand( soundLists[index].size );
-		sample = soundLists[index].at(chosen);
-		("\nSample of type" + soundTypes[index] + "chosen:" + soundListsDisp[index].at(chosen)).postln;
-		{ text.string = soundTypes[index] ++ ":" + soundListsDisp[index].at(chosen) }.defer;
+		sample = path ++ soundNames[index];
+		{ text.string = soundNames[index] }.defer;
 		playSynth[index] = DiskPlayer.new(s, sample, ~aBus.outMain, loop: 1, bufPwr: 17, autoPlay: true, lev: level, rate: rate, ff: ff);
 	});
 

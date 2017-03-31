@@ -10,14 +10,14 @@ s.waitForBoot {
 
 	var
 	verbose = false, // amount of information in post window
-	noDevicesOverride = false, // if true the system shows the samplePad views independent of gamePad availability
+	noDevicesOverride = true, // if true the system shows the samplePad views independent of gamePad availability
 	heightOffset = 80, // offset at the bottom to make space for rec/play/solo buttons
 	copyRecs = true, // if true the recordings will be copied to a remote server
-	// remoteFileServer = "/Volumes/LCM/", // mounted remote server
-	remoteFileServer = "/Users/Robert/Desktop/LCM/", // mounted remote server
+	remoteFileServer = "/Volumes/LCM/", // mounted remote server
+	// remoteFileServer = "/Users/Robert/Desktop/LCM/", // mounted remote server
 	maxRecord = 10, // max record time in seconds - after this time the recording stops automatically
 	sampleLength = 2, // sample length to use in samplePads
-	normalize = 2, // value to normalize samples to
+	normalize = 1.5, // value to normalize samples to
 	sameSample = true, // whether the samplePads should use the same sample
 	playYellow = true, // whether the view of each samplePad should have a yellow background when playing
 	showBufBounds = false; // whether to show the start and endpoint in seconds in each view
@@ -330,6 +330,7 @@ s.waitForBoot {
 		};
 		synthListener.free;
 		// ("(OSCdefs after free:"+AbstractResponderFunc.allFuncProxies).postcs;
+		// "osascript -e 'tell application \"SuperCollider\" to quit'".unixCmd;
 	};
 
 	if(devCount > 0 or: { noDevicesOverride }, {

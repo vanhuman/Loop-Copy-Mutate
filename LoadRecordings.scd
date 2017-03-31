@@ -7,7 +7,7 @@ var path = "/Users/Robert/Desktop/LCM/";
 var soundNotes = [72, 73];
 var soundNames = ["sampleStation0.aiff", "sampleStation1.aiff"];
 var win, text;
-var level = 1, rate = 1, ff = 20000, playSynth = Array.newClear(2);
+var level = 1, dist = 1, rate = 1, ff = 20000, playSynth = Array.newClear(2);
 
 win = Window("LCM load recordings", Rect(20, 300, 700, 100));
 text = (StaticText(win, Rect(10,10, 680, 80)).string_("###").font_(Font("Monaco",30)));
@@ -21,7 +21,7 @@ OSCdef(\lcmNON, { |msg|
 	if( index.notNil, {
 		sample = path ++ soundNames[index];
 		{ text.string = soundNames[index] }.defer;
-		playSynth[index] = DiskPlayer.new(s, sample, ~aBus.outMain, loop: 1, bufPwr: 17, autoPlay: true, lev: level, rate: rate, ff: ff);
+		playSynth[index] = DiskPlayer.new(s, sample, ~aBus.outMain, loop: 1, bufPwr: 17, autoPlay: true, lev: level * dist, rate: rate, ff: ff);
 	});
 
 }, "/midi/noteOn").fix;
@@ -50,9 +50,9 @@ OSCdef(\lcmCCLPK, { |msg|
 	if(src == "LPK", {
 		// volume
 		if((chan==0 && num==3), {
-			level = value.linlin(0,1,0,3);
+			level = value;
 			2.do {|i| if(playSynth[i].notNil, {
-				playSynth[i].set(\lev,level);
+				playSynth[i].set(\lev,level * dist);
 			}) };
 		});
 		// filter frequency
@@ -67,6 +67,13 @@ OSCdef(\lcmCCLPK, { |msg|
 			rate = value.linlin(0,1,0.8,1.2);
 			2.do {|i| if(playSynth[i].notNil, {
 				playSynth[i].set(\rate,rate);
+			}) };
+		});
+		// distortion
+		if((chan==0 && num==7), {
+			dist = value.linexp(0,1,1,50);
+			2.do {|i| if(playSynth[i].notNil, {
+				playSynth[i].set(\lev,level * dist);
 			}) };
 		});
 	});

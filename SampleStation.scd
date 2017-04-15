@@ -11,21 +11,23 @@ s.waitForBoot {
 	var
 	verbose = false, // amount of information in post window
 	noDevicesOverride = true, // if true the system shows the samplePad views independent of gamePad availability
-	heightOffset = 80, // offset at the bottom to make space for rec/play/solo buttons
+	heightOffset = 40, // offset at the bottom to make space for rec/play/solo buttons
 	copyRecs = true, // if true the recordings will be copied to a remote server
 	remoteFileServer = "/Volumes/LCM/", // mounted remote server
 	// remoteFileServer = "/Users/Robert/Desktop/LCM/", // mounted remote server
 	maxRecord = 10, // max record time in seconds - after this time the recording stops automatically
 	sampleLength = 2, // sample length to use in samplePads
-	normalize = 1.5, // value to normalize samples to
-	sameSample = true, // whether the samplePads should use the same sample
+	normalize = 1, // value to normalize samples to
+	sameSample = false, // whether the samplePads should use the same sample
 	playYellow = true, // whether the view of each samplePad should have a yellow background when playing
-	showBufBounds = false; // whether to show the start and endpoint in seconds in each view
+	showBufBounds = false, // whether to show the start and endpoint in seconds in each view
+	showNumber = true, // whether to show the gamepad number instead of the left button
+	showSampleSelect = false; // whether to show sample selection dropdown
 
 	var localAddr = NetAddr("127.0.0.1", 57120), sRate = s.sampleRate;
 	var hidDevice = Array.newClear(4), samplePad = Array.newClear(4), sampleList, hidDeviceName, hidDeviceNameTmp;
-	var paramMode, deviceText, fCopyRecs, deviceMap, devCount = 0, fSolo, synthListener;
-	var wDummy, wSamStat, ctrView, button = (\rec: nil!2, \play: nil!2, \solo: nil!4), bWidth, bRec;
+	var paramMode, deviceText, fCopyRecs, deviceMap, devCount = 0, fSolo, synthListener, fButtonControl, buttonsEnabled = true;
+	var wDummy, wSamStat, ctrView, button = (\rec: nil!2, \play: nil!2, \send: nil!4, \solo: nil!4), bWidth, bRec, bFont;
 	var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height;
 	var recplay = (
 		path: Array.newClear(2), file: {SoundFile.new}!2, play: Array.newClear(2), len: Array.newClear(2),
@@ -120,10 +122,12 @@ s.waitForBoot {
 		arg val, num, chan, src;
 		// ["LCMnon", val, num, chan, src].postln;
 		case
-		{ num == 48 } { button[\rec][0].valueAction_( (button[\rec][0].value+1)%3 )}
-		{ num == 50 } { button[\play][0].valueAction_( (button[\play][0].value+1)%2 )}
-		{ num == 52 } { button[\rec][1].valueAction_( (button[\rec][1].value+1)%3 )}
-		{ num == 53 } { button[\play][1].valueAction_( (button[\play][1].value+1)%2 )}
+		{ num == 48 and: { buttonsEnabled } } { button[\rec][0].valueAction_( (button[\rec][0].value+1)%3 )}
+		{ num == 49 and: { buttonsEnabled } } { button[\send][0].valueAction_(1)}
+		{ num == 52 } { button[\play][0].valueAction_( (button[\play][0].value+1)%2 )}
+		{ num == 55 and: { buttonsEnabled } } { button[\rec][1].valueAction_( (button[\rec][1].value+1)%3 )}
+		{ num == 56 and: { buttonsEnabled } } { button[\send][1].valueAction_(1)}
+		{ num == 59 } { button[\play][1].valueAction_( (button[\play][1].value+1)%2 )}
 		{ num == 60 } { if(button[\solo][0].notNil, { button[\solo][0].valueAction_( (button[\solo][0].value+1)%2 ) }) }
 		{ num == 62 } { if(button[\solo][1].notNil, { button[\solo][1].valueAction_( (button[\solo][1].value+1)%2 ) }) }
 		{ num == 64 } { if(button[\solo][2].notNil, { button[\solo][2].valueAction_( (button[\solo][2].value+1)%2 ) }) }
@@ -160,8 +164,8 @@ s.waitForBoot {
 
 	fCopyRecs = { arg i;
 		if(copyRecs and: { recplay.path[i].notNil }, {
-			("cp \"" ++ recplay.path[i] ++ "\" \"" ++ remoteFileServer ++ "sampleStation" ++ i ++ ".aiff\"").unixCmd;
-			("unixCmd: cp \"" ++ recplay.path[i] ++ "\" \"" ++ remoteFileServer ++"sampleStation" ++ i ++ ".aiff\"").postln;
+			("cp \"" ++ recplay.path[i] ++ "\" \"" ++ remoteFileServer ++ "GameStation/\"").unixCmd;
+			("unixCmd: cp \"" ++ recplay.path[i] ++ "\" \"" ++ remoteFileServer ++"GameStation/\"").postln;
 		});
 	};
 
@@ -187,6 +191,14 @@ s.waitForBoot {
 				});
 			}
 		})
+	};
+
+	fButtonControl = { arg action;
+		2.do { arg i;
+			button[\rec][i].enabled_(action==\enable);
+			button[\send][i].enabled_(action==\enable);
+			buttonsEnabled = (action==\enable);
+		}
 	};
 
 	// --- GUI ------------------------------------------------------------------------------------------------
@@ -218,7 +230,10 @@ s.waitForBoot {
 				sampleLength, // sample length to use in samplePads
 				normalize, // value to normalize samples to
 				sameSample, // whether the view of each samplePad should have a yellow background when playing
-				showBufBounds // whether to show the start and endpoint in seconds in each view
+				playYellow, // whether the view of each samplePad should have a yellow background when playing
+				showBufBounds, // whether to show the start and endpoint in seconds in each view
+				showNumber, // whether to show the gamepad number instead of the left button
+				showSampleSelect // whether to show sample selection dropdown
 			);
 			});
 	};
@@ -229,16 +244,17 @@ s.waitForBoot {
 
 	// operator section
 	ctrView = View(wSamStat, Rect(4, screenHeight - heightOffset, screenWidth - 8, 80)).background_(Color.black);
-	bWidth = screenWidth / 8 - 5;
+	bWidth = screenWidth / 11.5 - 5;
+	bFont = Font(Font.default,12);
 
 	// record and play buttons
 	2.do { arg i;
-		button[\rec][i] = (SmoothButton(ctrView, Rect(2 * i * bWidth + 10, 10, bWidth - 5, 25))
-			.border_(1).radius_(2).canFocus_(false)
+		button[\rec][i] = (SmoothButton(ctrView, Rect(i * 3.3 * bWidth, 10, bWidth - 5, 25))
+			.border_(1).radius_(2).canFocus_(false).font_(bFont)
 			.states_([
-				[ (i+1)+": start recording", Color.black, Color.white ],
-				[ (i+1)+": stop recording", Color.black, Color.red ],
-				[ (i+1)+": record again", Color.black, Color.green ]
+				[ (i+1)+": start rec", Color.black, Color.white ],
+				[ (i+1)+": stop rec", Color.black, Color.red ],
+				[ (i+1)+": rec again", Color.black, Color.green ]
 			])
 			.action_({ arg button;
 				if(button.value == 0, { button.value = 1 });
@@ -252,15 +268,15 @@ s.waitForBoot {
 					recplay.clockrec[i].clear;
 					recplay.recording[i] = false;
 					{ bRec.visible_(false) }.defer;
-					{ fCopyRecs.value(i) }.defer(0.1);
+						// { fCopyRecs.value(i) }.defer(0.1);
 				});
 			})
 		);
-		button[\play][i] = (SmoothButton(ctrView, Rect( (i*2 + 1) * bWidth + 10, 10, bWidth - 5, 25))
-			.border_(1).radius_(2).canFocus_(false)
+		button[\play][i] = (SmoothButton(ctrView, Rect( (i*3.3 + 1) * bWidth, 10, bWidth - 5, 25))
+			.border_(1).radius_(2).canFocus_(false).font_(bFont)
 			.states_([
-				[ (i+1)+": start playback", Color.black, Color.white ],
-				[ (i+1)+": stop playback", Color.white, Color.blue(1,0.5) ]
+				[ (i+1)+": start play", Color.black, Color.white ],
+				[ (i+1)+": stop play", Color.white, Color.blue(1,0.5) ]
 			])
 			.action_({ arg button;
 				if(button.value == 1, {
@@ -281,13 +297,28 @@ s.waitForBoot {
 				})
 			})
 		);
+		button[\send][i] = (SmoothButton(ctrView, Rect( (i*3.3 + 2) * bWidth, 10, bWidth - 5, 25))
+			.border_(1).radius_(2).canFocus_(false).font_(bFont)
+			.states_([
+				[ (i+1)+": send", Color.black, Color.white ],
+				[ (i+1)+": send", Color.white, Color.blue(1,0.5) ]
+			])
+			.action_({ arg button;
+				if(button.value == 1, {
+					"RECORDING SEND TO SERVER".warn;
+					{ fButtonControl.value(\disable) }.defer();
+					fCopyRecs.value(i);
+					{ button.value = 0 }.defer(0.2);
+				})
+			})
+		);
 	};
 
 	// mute buttons
 	hidDevice.size.do { |index|
 		if(hidDevice[index].notNil or: { noDevicesOverride }, {
-			button[\solo][index] = (SmoothButton(ctrView, Rect(index * bWidth + (screenWidth / 2) + 10, 10, bWidth - 5, 25))
-				.border_(1).radius_(2).canFocus_(false)
+			button[\solo][index] = (SmoothButton(ctrView, Rect( (index+6.6) * bWidth , 10, bWidth - 5, 25))
+				.border_(1).radius_(2).canFocus_(false).font_(bFont)
 				.states_([
 					[ "Solo "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.black, Color.white ],
 					[ "Solo "++deviceText[hidDeviceName[index]][\title]++"/"++index, Color.white, Color.red ]
@@ -315,6 +346,11 @@ s.waitForBoot {
 			hidDevice.size.do { |index|
 				if(hidDevice[index].notNil or: { noDevicesOverride }, { samplePad[index].showBufBounds(showBufBounds) });
 			};
+		}
+		{ keycode == 15 and: { modifiers.isAlt } } // alt-r
+		{
+			fButtonControl.value(\enable);
+			buttonsEnabled = true;
 		}
 		;
 	};

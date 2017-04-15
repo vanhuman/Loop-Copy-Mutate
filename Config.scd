@@ -1,1 +1,1 @@
-[ "fbv1a.wav", "TI04_tl-tl-tl-tl-tl.wav", "TE11_Zzzwwwaaaiiizzz.wav", "TI05_ding-dong.wav", 'start', 'len', 'trem', 'pitch', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'WingMan RumblePad' ]
+[ "fbv12.wav", "fbv25a2.wav", "fbv27a2.wav", "fbv8a2.wav", 'startLen', 'startLen', 'pitch', 'pitch', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad' ]

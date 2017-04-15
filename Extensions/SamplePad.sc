@@ -5,7 +5,11 @@ To trigger and control samples from a Gravis Destroyer Tiltpad or other gamepads
 */
 
 SamplePad {
-	var id, server, path, paramMode, win, map, verbose, startTrem, hOffset, text, sLen, norm, samSam, bgYel, bufBounds; // arguments
+	// arguments
+	var id, server, path, paramMode, win, map, verbose, startTrem, hOffset, text, sLen, norm, samSam, bgYel,
+	bufBounds, showNbr, showSampleSelect;
+
+	// other variables
 	var buffer, soundFile, numChans, numFrames, sRate, startOffset, localAddr, stereoLocation;
 	var instance, playSynth, tremSynth, spec, tremMax, sampleList, sampleListDisplay, oscTrem, oscSamSel;
 	var button, slider, bufferView, viewCover, popSample, bufferBounds;
@@ -14,9 +18,10 @@ SamplePad {
 	*new {
 
 		arg id = 0, server, path, paramMode = \startLen, win, map, verbose = true, startTrem = true, hOffset = 50,
-			text, sLen = 0, norm = 1, samSam = false, bgYel = false, bufBounds = false;
+			text, sLen = 0, norm = 1, samSam = false, bgYel = false, bufBounds = false, showNbr = false, showSampleSelect;
 		^super.newCopyArgs(
-			id, server, path, paramMode, win, map, verbose, startTrem, hOffset, text, sLen, norm, samSam, bgYel, bufBounds
+			id, server, path, paramMode, win, map, verbose, startTrem, hOffset, text, sLen, norm, samSam, bgYel,
+			bufBounds, showNbr, showSampleSelect
 		).initSamplePad;
 
 	}
@@ -356,7 +361,7 @@ SamplePad {
 	buildGUI {
 
 		var screenWidth = Window.screenBounds.width, screenHeight = Window.screenBounds.height - hOffset;
-		var border = 4, view, title, font = "Avenir", textGui = ();
+		var border = 4, view, title, font = "Avenir", textGui = (), number;
 		var width = screenWidth / 2 - (1.5*border), height = screenHeight / 2 - (1.5*border);
 		var left = (id%2) * width + ((id%2+1)*border), top = (id > 1).asInt * height + (((id > 1).asInt + 1)*border);
 
@@ -406,6 +411,10 @@ SamplePad {
 			.border_(1).radius_(5).canFocus_(false).font_(Font(font,30))
 			.states_([ [ "left\nfront", Color.grey(0.5), Color.grey(0.9) ], [ "left\nfront", Color.white, Color.grey(0.5) ] ])
 		);
+		number = (StaticText(view, Rect(40,height - 140,100,100))
+			.canFocus_(false).font_(Font(font,70))
+			.string_( (id+1).asString )
+		);
 		textGui[\left] = (StaticText(view, Rect(button[\left].bounds.left - 5, button[\left].bounds.top - 40, button[\left].bounds.width + 10, 30))
 			.string_("- Pause X Control -").font_(Font(font,12)).align_(\center)
 		);
@@ -418,13 +427,14 @@ SamplePad {
 			.states_([ [ text[\yellow], Color.black, Color.yellow(1,0.3) ], [ text[\yellow], Color.black, Color.yellow(1,1) ] ])
 			.action_({ |b| if(b.value == 1, {
 				button[\red].background_(Color.red);
-				{ view.background_(Color.yellow) }.defer;
+				if(bgYel, { { view.background_(Color.yellow) }.defer });
 			}, {
 				button[\red].background_(Color.white);
-				{ view.background_(Color.white) }.defer;
+				if(bgYel, { { view.background_(Color.white) }.defer });
 			}) })
 		);
-		textGui[\yellow] = (StaticText(view, Rect(button[\yellow].bounds.left, button[\yellow].bounds.top - 40, button[\yellow].bounds.width, 30))
+		textGui[\yellow] = (StaticText(view,
+			Rect(button[\yellow].bounds.left, button[\yellow].bounds.top - 40, button[\yellow].bounds.width, 30))
 			.string_("- Play Sample -").font_(Font(font,12)).align_(\center)
 		);
 
@@ -495,6 +505,14 @@ SamplePad {
 		;
 		if([\start,\len,\pitch,\trem].indexOfEqual(paramMode).notNil, {
 			textGui[\left].visible = false; button[\left].visible = false;
+		});
+		if(showNbr, {
+			textGui[\left].visible = false; button[\left].visible = false;
+		}, {
+			number.visible = false;
+		});
+		if( showSampleSelect.not, {
+			title.visible = false; popSample.visible = false; button[\setDefault].visible = false;
 		});
 
 		// mute/unmute layover

@@ -1,1 +1,1 @@
-[ "fbv12.wav", "fbv25a2.wav", "fbv27a2.wav", "fbv8a2.wav", 'startLen', 'startLen', 'pitch', 'pitch', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad', 'Destroyer Tiltpad' ]
+[ "ME14_meine Damen und Herrn.wav", "ME_4.wav", "TI06_tizz qzkch tizz.wav", "Te0019_eeuiwtje.wav", 'startLen', 'startLen', 'tremPitch', 'tremPitch', 'none', 'none', 'none', 'none', 'Pink' ]

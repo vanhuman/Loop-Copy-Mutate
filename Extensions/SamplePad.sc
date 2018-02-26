@@ -2,26 +2,40 @@
 SamplePad Class / developed for the Loop/Copy/Mutate project of the Genetic Choir / by Robert van Heumen
 To trigger and control samples from a Gravis Destroyer Tiltpad or other gamepads
 (c) 2017
+skin arguments
+			playYellow: true,
+			playButton: Color.yellow,
+			playButtonEdge: Color.red,
+			backgroundWindow: Color.black,
+			backgroundPlayer: Color.white,
+			record: Color.red,
+			recordAgain: Color.green,
+			play: Color.blue(1,0.5),
+			sampleRegion: Color.blue(1,0.5),
+			triggerOff: Color.yellow(1,0.3),
+			triggerOn: Color.yellow(1,1)
 */
 
 SamplePad {
 	// arguments
 	var id, server, path, paramMode, win, map, verbose, startTrem, hOffset, text, sLen, norm, samSam, bgYel,
-	bufBounds, showNbr, showSampleSelect;
+	bufBounds, showNbr, showSampleSelect, sampleFolder, configFolder, skin;
 
 	// other variables
 	var buffer, soundFile, numChans, numFrames, sRate, startOffset, localAddr, stereoLocation;
 	var instance, playSynth, tremSynth, spec, tremMax, sampleList, sampleListDisplay, oscTrem, oscSamSel;
 	var button, slider, bufferView, viewCover, popSample, bufferBounds;
 	var pitchBus, lenBus, tremBus, volBus, startPos, startPosPrev, muteBus;
+	var defaultSample = "Meine Damen und Herrn.wav";
 
 	*new {
 
 		arg id = 0, server, path, paramMode = \startLen, win, map, verbose = true, startTrem = true, hOffset = 50,
-			text, sLen = 0, norm = 1, samSam = false, bgYel = false, bufBounds = false, showNbr = false, showSampleSelect;
+			text, sLen = 0, norm = 1, samSam = false, bgYel = false, bufBounds = false, showNbr = false, showSampleSelect,
+			sampleFolder, configFolder, skin;
 		^super.newCopyArgs(
 			id, server, path, paramMode, win, map, verbose, startTrem, hOffset, text, sLen, norm, samSam, bgYel,
-			bufBounds, showNbr, showSampleSelect
+			bufBounds, showNbr, showSampleSelect, sampleFolder, configFolder, skin
 		).initSamplePad;
 
 	}
@@ -61,6 +75,7 @@ SamplePad {
 		button = (); slider = ();
 		stereoLocation = [-2,2,-1,1];
 		bufferBounds = ();
+		path = sampleFolder ++ path;
 
 	} // initVars
 
@@ -69,8 +84,11 @@ SamplePad {
 		var soundFileShort, outpath, extension, sLenLocal;
 
 		if(path.notNil, { // read soundfile in buffer
-			soundFileShort = subStr(path, path.findBackwards("/",offset: max(0,(path.size - 30))), path.size);
 			soundFile = SoundFile.new;
+			if(soundFile.openRead(path).not, {
+				path = configFolder ++ defaultSample;
+			});
+			soundFileShort = subStr(path, path.findBackwards("/",offset: max(0,(path.size - 30))), path.size);
 			if(soundFile.openRead(path), {
 				buffer.free;
 				numChans = soundFile.numChannels;
@@ -188,7 +206,7 @@ SamplePad {
 		// OSCdef that catches all gamepad OSC
 		OSCdef(instance, { arg msg;
 			var elid, value, physValue;
-			// [name,msg].postln;
+			// [instance,msg].postln;
 			elid = msg[1];
 			value = msg[2];
 			physValue = msg[3];
@@ -196,7 +214,6 @@ SamplePad {
 			case
 			{ elid == map[\yellow] } // yellow button
 			{
-				this.playBuffer(0,value);
 				button[\yellow].valueAction_(value);
 			}
 			{ elid == map[\left] } // left button
@@ -220,22 +237,17 @@ SamplePad {
 				{
 					// set start position
 					startPos = spec.start.at(value*127);
-
 					// if startPos changed, update bufferView and restart synths that were running
 					if(startPos != startPosPrev, {
 						{ bufferView.setSelectionStart(0, startPos * sRate) }.defer;
-						2.do { arg playMode;
-							if(playSynth[playMode].notNil, {
-								if(verbose, { ("set start:"+startPos).postln });
-								this.playBuffer(playMode, 0, \nilBypass);
-								this.playBuffer(playMode, 1, \nilBypass);
-							});
-						};
+						this.restartSynths();
 						startPosPrev = startPos;
 					});
 				}
 				{ paramMode == \tremPitch or: { paramMode == \trem } }
-				{ tremBus.set(spec.trem.at(value)); if(verbose, {("set trem:"+spec.trem.at(value)).postln});  }
+				{
+					slider[\tremolo].valueAction = value;
+				}
 				;
 			}
 			{ elid == map[\y] and: { rightShift == 1 }  } // Y-axis
@@ -251,9 +263,7 @@ SamplePad {
 				}
 				{ paramMode == \tremPitch or: { paramMode == \pitch } }
 				{
-					pitchBus.set(spec.pitch.at(value));
-					if(verbose, {("set pitch:"+spec.pitch.at(value)).postln});
-					slider[\pitch].value = value;
+					slider[\pitch].valueAction = value;
 				}
 				;
 			}
@@ -286,6 +296,16 @@ SamplePad {
 				}.defer;
 			}, '/sample' ).fix;
 		});
+	}
+
+	restartSynths {
+		2.do { arg playMode;
+			if(playSynth[playMode].notNil, {
+				if(verbose, { ("set start:"+startPos).postln });
+				this.playBuffer(playMode, 0, \nilBypass);
+				this.playBuffer(playMode, 1, \nilBypass);
+			});
+		};
 	}
 
 	// start tremolo synth that spits out tremolo values, to run the GUI if the other synths are not running
@@ -366,7 +386,7 @@ SamplePad {
 		var left = (id%2) * width + ((id%2+1)*border), top = (id > 1).asInt * height + (((id > 1).asInt + 1)*border);
 
 		// sample list for dropdown
-		sampleList = (Document.dir++"Loop-Copy-Mutate/Samples/*").pathMatch;
+		sampleList = (sampleFolder++"*").pathMatch;
 		sampleList.takeThese({ arg item, index; PathName.new(item).isFile.not });
 		sampleListDisplay = sampleList.collect { arg sample; subStr(sample, sample.findBackwards("/")+1, sample.size) };
 
@@ -379,7 +399,7 @@ SamplePad {
 			left = 0; top = 0;
 		});
 
-		view = View(win, Rect(left, top, width, height)).background_(Color.white);
+		view = View(win, Rect(left, top, width, height)).background_(skin[\backgroundPlayer]);
 
 		title = (StaticText(view, Rect(width/4, height - 30, 120, 20))
 			.string_(instance + "sample:").font_(Font(font,12)).align_(\right)
@@ -396,7 +416,7 @@ SamplePad {
 			.action_({ |b|
 				if(b.value == 1, {
 					var file, fileContents, path;
-					path = Document.dir++"Loop-Copy-Mutate/Config.scd";
+					path = configFolder++"Config.scd";
 					fileContents = path.load;
 					fileContents[id] = popSample.item;
 					file = File(path,"w");
@@ -424,13 +444,15 @@ SamplePad {
 		);
 		button[\yellow] = (SmoothButton(view, Rect(width - 140,height - 140,100,100))
 			.border_(1).radius_(50).canFocus_(false).font_(Font(font,30))
-			.states_([ [ text[\yellow], Color.black, Color.yellow(1,0.3) ], [ text[\yellow], Color.black, Color.yellow(1,1) ] ])
-			.action_({ |b| if(b.value == 1, {
-				button[\red].background_(Color.red);
-				if(bgYel, { { view.background_(Color.yellow) }.defer });
-			}, {
-				button[\red].background_(Color.white);
-				if(bgYel, { { view.background_(Color.white) }.defer });
+			.states_([ [ text[\yellow], Color.black, skin[\playButtonOff] ], [ text[\yellow], Color.black, skin[\playButtonOn] ] ])
+			.action_({ |b|
+				this.playBuffer(0,b.value);
+				if(b.value == 1, {
+					button[\red].background_(skin[\playButtonBorder]);
+					if(bgYel, { { view.background_(skin[\playButtonOn]) }.defer });
+				}, {
+					button[\red].background_(Color.white);
+					if(bgYel, { { view.background_(skin[\backgroundPlayer]) }.defer });
 			}) })
 		);
 		textGui[\yellow] = (StaticText(view,
@@ -447,14 +469,22 @@ SamplePad {
 				.gridColor_(Color.grey)
 				.timeCursorOn_(true)
 				.timeCursorColor_(Color.black)
-				.waveColors_([Color.green(0.3), Color.green(0.3)])
+				.waveColors_([Color.black, Color.black])
 				.background_(Color.white)
 				.canFocus_(false)
-				.setSelectionColor(0, Color.blue(1,0.5));
+				.setSelectionColor(0, skin[\controls])
 			);
 			bufferView.soundfile = soundFile;
 			bufferView.read(startOffset, numFrames, 512).refresh;
 			bufferView.setSelectionStart(0, startPos * sRate);
+			// for mouse interaction with the view
+			bufferView.action_({ arg value;
+				var start = value.selections[0][0];
+				var len = value.selections[0][1];
+				startPos = spec.start.at( 127 * (start / numFrames) );
+				this.restartSynths();
+				lenBus.set( len / sRate );
+			});
 			lenBus.get {arg val; { bufferView.setSelectionSize(0, val * sRate) }.defer };
 			textGui[\bufferview] = (StaticText(view,
 				Rect(bufferView.bounds.left, bufferView.bounds.top + bufferView.bounds.height - 20, bufferView.bounds.width, 100))
@@ -466,7 +496,10 @@ SamplePad {
 		{
 			slider[\tremolo] = (SmoothSlider(view, Rect(width/2 - (width/8) - 10, 20, width/8, height - 60))
 				.canFocus_(false).knobSize_(1).border_(1)
-				.hilightColor_(Color.white).background_(Color.white).knobColor_(Color.blue(1,0.5)).borderColor_(Color.grey)
+				.hilightColor_(Color.white).background_(Color.white).knobColor_(skin[\controls]).borderColor_(Color.grey)
+				.action_({ |b|
+					tremBus.set(spec.trem.at(b.value)); if(verbose, {("set trem:"+spec.trem.at(b.value)).postln});
+				})
 			);
 			textGui[\tremolo] = (StaticText(view, Rect(slider[\tremolo].bounds.left - (width/4) - 25, slider[\tremolo].bounds.top, width/4, 80))
 				.string_("- Tremolo -\n"++text[\xtp]++"\nto change speed")
@@ -474,7 +507,11 @@ SamplePad {
 			);
 			slider[\pitch] = (SmoothSlider(view, Rect(width/2 + 10, 20, width/8, height - 60))
 				.canFocus_(false).knobSize_(0.01).border_(1).value_(0.5)
-				.hilightColor_(Color.blue(1,0.5)).background_(Color.white).knobColor_(Color.black).borderColor_(Color.grey)
+				.hilightColor_(skin[\controls]).background_(Color.white).knobColor_(Color.black).borderColor_(Color.grey)
+				.action_({ |b|
+					pitchBus.set(spec.pitch.at(b.value));
+					if(verbose, {("set pitch:"+spec.pitch.at(b.value)).postln});
+				})
 			);
 			textGui[\pitch] = (StaticText(view, Rect(slider[\pitch].bounds.left + (width/8) + 20, slider[\pitch].bounds.top, width/4, 80))
 				.string_("- Pitch -\n"++text[\ytp]++"\nto change")
@@ -516,7 +553,7 @@ SamplePad {
 		});
 
 		// mute/unmute layover
-		viewCover = View(win, Rect(left, top, width, height)).background_(Color.grey).visible_(false);
+		viewCover = View(win, Rect(left, top, width, height)).background_(skin[\backgroundPlayer]).visible_(false);
 
 		// set initial sample in dropdown
 		popSample.value = sampleList.indexOfEqual(path);

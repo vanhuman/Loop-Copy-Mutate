@@ -1,15 +1,19 @@
-// code to load recordings from /Volumes/LCM/ folder, possibly divided in subfoders
+// code to load recordings from /Volumes/LCM/ folder, possibly divided in subfolders
+// used in conjunction with LAPIS
 
 (
 
 var path = "/Users/Robert/Desktop/LCM/";
 var soundNotes = [72, 73];
 var outChan = ~aBus.outA, outMono = 0;
-var win, text;
+var text;
 var level = 1, dist = 1, rate = 1, ff = 20000, playSynth = Array.newClear(2);
+var gameStationCount = 0,  micStationCount = 0;
+var midiFilter = "MUL"; // MIDI filter for note msgs
 
-win = Window("LCM load recordings", Rect(20, 300, 900, 100));
-text = (StaticText(win, Rect(10,10, 880, 80)).string_("###").font_(Font("Monaco",30)));
+
+~wLoadRecordings = Window("LCM load recordings", Rect(20, 400, 900, 100));
+text = (StaticText(~wLoadRecordings, Rect(10,10, 880, 80)).string_("###").font_(Font("Monaco",30)));
 
 OSCdef(\lcmNON, { |msg|
 	var chan, note, vel, src;
@@ -17,20 +21,33 @@ OSCdef(\lcmNON, { |msg|
 	chan = msg[1]; note = msg[2]; vel = msg[3]; src = msg[4].asString;
 	// ["LCM NON",chan,note,vel, src].postln;
 	index = soundNotes.indexOfEqual(note);
-	if( index.notNil, {
+	if( index.notNil && (src == midiFilter), {
 		case
-		{ index == 0 } { files = (path++"MicStation/*").pathMatch; station = "MicStation\n"; }
-		{ index == 1 } { files = (path++"GameStation/*").pathMatch; station = "GameStation\n"; }
+		{ index == 0 } {
+			files = (path++"MicStation/*").pathMatch; station = "MicStation\n";
+			if(files.size > 0, {
+				sample = files[micStationCount];
+				{ text.string = station++sample.subStr( sample.findBackwards("/") ) }.defer;
+				playSynth[index] = DiskPlayer.new(s, sample, outChan, mono: outMono,
+					loop: 0, bufPwr: 17, autoPlay: true, lev: level * dist, rate: rate, ff: ff);
+				micStationCount = (micStationCount + 1) % files.size;
+			}, {
+				{ text.string = "NO SAMPLES FOUND!" }.defer;
+			});
+		}
+		{ index == 1 } {
+			files = (path++"GameStation/*").pathMatch; station = "GameStation\n";
+			if(files.size > 0, {
+				sample = files[gameStationCount];
+				{ text.string = station++sample.subStr( sample.findBackwards("/") ) }.defer;
+				playSynth[index] = DiskPlayer.new(s, sample, outChan, mono: outMono,
+					loop: 0, bufPwr: 17, autoPlay: true, lev: level * dist, rate: rate, ff: ff);
+				gameStationCount = (gameStationCount + 1) % files.size;
+			}, {
+				{ text.string = "NO SAMPLES FOUND!" }.defer;
+			});
+		}
 		;
-		if(files.size > 0, {
-			sample = files[files.size.rand];
-			{ text.string = station++sample.subStr( sample.findBackwards("/") ) }.defer;
-			playSynth[index] = DiskPlayer.new(s, sample, outChan, mono: outMono,
-				loop: 0, bufPwr: 17, autoPlay: true, lev: level * dist, rate: rate, ff: ff,
-				outRS: ~aBus.outResamplingChan, outRSatt: ~aBus.outResamplingAtt);
-		}, {
-			{ text.string = "NO SAMPLES FOUND!" }.defer;
-		});
 	});
 
 }, "/midi/noteOn").fix;
@@ -91,10 +108,10 @@ OSCdef(\lcmCCLPK, { |msg|
 ).fix;
 
 
-win.onClose = {
+~wLoadRecordings.onClose = {
 	OSCdef(\lcmNON).free; OSCdef(\lcmNOF).free; OSCdef(\lcmCCLPK).free;
 };
-win.front;
+~wLoadRecordings.front;
 
 )
 

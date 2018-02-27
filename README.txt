@@ -10,6 +10,7 @@ Logitech Attack 3
 Thrustmaster Firestorm Wireless Gamepad
 
 Check out the Config-template.scd file for settings. Run the code in SampleStationSetup.scd to start the application.
+Dependencies: the wslib quark and the rvhLib library (https://github.com/vanhuman/rvhLib-1).
 
 This application is provided ‘as is’ and any result of its use, good or bad, is the sole responsibility of the user. No claims can be made in case of damage to goods or minds. The application is licensed under the Creative Commons license CC BY-NC-SA 4.0. https://creativecommons.org/licenses/by-nc-sa/4.0/
 

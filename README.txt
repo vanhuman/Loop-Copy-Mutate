@@ -9,11 +9,12 @@ Logitech Wingman Rumblepad
 Logitech Attack 3
 Thrustmaster Firestorm Wireless Gamepad
 
-If you want to have the SampleStation adapted to another game device, please contact the developer at robert@west28.nl. No promises.
+Check out the Config-template.scd file for settings. Run the code in SampleStationSetup.scd to start the application.
 
 This application is provided ‘as is’ and any result of its use, good or bad, is the sole responsibility of the user. No claims can be made in case of damage to goods or minds. The application is licensed under the Creative Commons license CC BY-NC-SA 4.0. https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 The SampleStation is developed by Robert van Heumen in collaboration with the Genetic Choir.
+A standalone version will be available for download soon.
 
 More information:
 http://www.west28.nl/LCM/

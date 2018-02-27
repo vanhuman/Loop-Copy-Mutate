@@ -7,14 +7,15 @@
 	"TI07_klop-klop.wav",
 
 	// specify 4 playback modes placed between single quotes
-	// choose between startLen and pitch; these modes are case-sensitive!
+	// choose between startLen, tremPitch, start, len, trem and pitch; these modes are case-sensitive!
 	'startLen',
 	'startLen',
 	'pitch',
 	'pitch',
 
 	// specify the gamepads placed between single quotes
-	// options: fire, dest, att and wing (see documentation what they stand for)
+	// options: fire, dest, att and wing, which stands for
+	// Thrustmaster Firestorm Wireless Gamepad, Gravis Destroyer Tiltpad, Logitech Attack 3 and Logitech Wingman Rumblepad
 	'fire',
 	'dest',
 	'att',

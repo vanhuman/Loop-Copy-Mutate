@@ -1,1 +1,1 @@
-[ "ME14_meine Damen und Herrn.wav", "ME_4.wav", "TI06_tizz qzkch tizz.wav", "Te0019_eeuiwtje.wav", 'startLen', 'startLen', 'tremPitch', 'tremPitch', 'none', 'none', 'none', 'none', 'Pink' ]
+[ "ME14_meine Damen und Herrn.wav", "ME_4.wav", "TI06_tizz qzkch tizz.wav", "Te0019_eeuiwtje.wav", 'startLen', 'startLen', 'tremPitch', 'tremPitch', 'none', 'none', 'none', 'none', 'Blue' ]

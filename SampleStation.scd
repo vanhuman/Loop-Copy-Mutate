@@ -68,6 +68,7 @@ s.waitForBoot {
 	remoteFileServer = "/Volumes/LCM/", // mounted remote server
 	// remoteFileServer = "/Users/Robert/Desktop/LCM/", // mounted remote server
 	maxRecord = 10, // max record time in seconds - after this time the recording stops automatically
+	removeRecordingsOnClose = false, // whether to remove the recordings on close, only for the non-standalone version
 	sampleLength = 2, // sample length to use in samplePads
 	normalize = 1, // value to normalize samples to
 	sameSample = false, // whether the samplePads should use the same sample
@@ -506,7 +507,9 @@ s.waitForBoot {
 		if(~standalone, {
 			("rm " ++ Platform.resourceDir ++ "/SampleStation_files/Recordings/*").unixCmd;
 		}, {
-			("rm " ++ Document.current.dir ++ "/Recordings/*").unixCmd;
+			if(removeRecordingsOnClose, {
+				("rm " ++ Document.current.dir ++ "/Recordings/*").unixCmd;
+			});
 		});
 		// ("(OSCdefs after free:"+AbstractResponderFunc.allFuncProxies).postcs;
 		if(quitOnClose && ~standalone, {

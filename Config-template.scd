@@ -19,4 +19,8 @@
 	'dest',
 	'att',
 	'wing',
+
+	// specify the skin
+	// options: Silver, Blue, Pink
+	'Pink',
 ]

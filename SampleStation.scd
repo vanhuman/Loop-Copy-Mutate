@@ -3,10 +3,6 @@ Loop/Copy/Mutate project Genetic Choir
 Sample Station
 */
 
-// to fake a destroyer
-~localAddr = NetAddr("127.0.0.1", 57120);
-~localAddr.sendMsg("/hid/samplepad2", 11, 0.89);
-
 (
 if(~standalone.isNil, {~standalone = false});
 s.waitForBoot {
